@@ -1,6 +1,6 @@
 " Vim syntax file
 " Language:	Boa
-" Maintainer:	Robert Dyer <rdyer@iastate.edu>
+" Maintainer:	Robert Dyer <rdyer@unl.edu>
 
 " For version 5.x: Clear all syntax items
 " For version 6.x: Quit when a syntax file was already loaded
