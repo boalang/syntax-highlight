@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.0
+;; Version: 1.0.1
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -183,11 +183,11 @@
 
 (defvar boa-mode-font-lock-keywords
   `((("\"\\.\\*\\?" . font-lock-string-face)
-     (,(regexp-opt boa-errors 'word) . font-lock-warning-face)
-     (,(regexp-opt boa-keywords 'word) . font-lock-keyword-face)
-     (,(regexp-opt boa-constants 'word) . font-lock-constant-face)
-     (,(regexp-opt boa-types 'word) . font-lock-type-face)
-     (,(regexp-opt boa-builtins 'word) . font-lock-builtin-face)))
+     (,(regexp-opt boa-errors 'symbols) . font-lock-warning-face)
+     (,(regexp-opt boa-keywords 'symbols) . font-lock-keyword-face)
+     (,(regexp-opt boa-constants 'symbols) . font-lock-constant-face)
+     (,(regexp-opt boa-types 'symbols) . font-lock-type-face)
+     (,(regexp-opt boa-builtins 'symbols) . font-lock-builtin-face)))
   "Boa font-locking configuration.")
 
 ;;;###autoload
