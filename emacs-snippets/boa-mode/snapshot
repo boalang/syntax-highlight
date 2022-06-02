@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name: snapshot
+# key: snapshot
+# --
+before node: CodeRepository -> {
+    snapshot := getsnapshot(node${1:$(unless (string-empty-p yas-text) ", ")}${1:condition});
+    foreach (i: int; def(snapshot[i]))
+        visit(snapshot[i]);
+    stop;
+}

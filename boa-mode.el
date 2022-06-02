@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.1.0
+;; Version: 1.2.0
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -194,6 +194,26 @@
      (,(regexp-opt boa-types 'symbols) . font-lock-type-face)
      (,(regexp-opt boa-builtins 'symbols) . font-lock-builtin-face)))
   "Boa font-locking configuration.")
+
+;; Yasnippet loading code taken in part from yasnippet-radical-snippets
+(defconst boa-mode-snippets-dir
+  (expand-file-name
+   "emacs-snippets"
+   (file-name-directory
+    ;; Copied from ‘f-this-file’ from f.el.
+    (cond
+     (load-in-progress load-file-name)
+     ((and (boundp 'byte-compile-current-file) byte-compile-current-file)
+      byte-compile-current-file)
+     (:else (buffer-file-name))))))
+
+(defun boa-mode-enable-snippets ()
+  "Load snippets for Boa mode."
+  (add-to-list 'yas-snippet-dirs boa-mode-snippets-dir t)
+  (yas-load-directory boa-mode-snippets-dir t))
+
+(with-eval-after-load 'yasnippet
+  (boa-mode-enable-snippets))
 
 ;;;###autoload
 (define-derived-mode boa-mode c-mode "Boa"

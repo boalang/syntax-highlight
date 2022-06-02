@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: Visitor
+# key: visitor
+# --
+visit(${1:input}, visitor {
+    ${2:before} ${3:n}: ${4:type} -> {
+        $0
+    }
+});

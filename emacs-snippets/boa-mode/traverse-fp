@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: traverse fix point
+# key: traverse-fp
+# --
+traverse(${1:cfg}, TravnersalDirection.${2:BACKWARD}, TraversalKind.${3:HYBRID}, $0, ${4:fp});

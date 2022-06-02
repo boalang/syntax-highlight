@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: exists
+# key: exists
+# --
+exists (${1:i}: ${2:int}; ${3:condition}) {
+    $0
+}

@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: traversal return
+# key: traversal-return
+# --
+${1:name} := traversal(${2:node}: ${3:CFGNode}) {
+    $0
+    return ${4};
+};

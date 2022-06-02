@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: ifall
+# key: ifall
+# --
+ifall (${1:i}: ${2:int}; ${3:condition}) {
+    $0
+}

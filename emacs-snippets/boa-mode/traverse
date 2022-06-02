@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: traverse
+# key: traverse
+# --
+traverse(${1:cfg}, TravnersalDirection.${2:BACKWARD}, TraversalKind.${3:HYBRID}, $0);

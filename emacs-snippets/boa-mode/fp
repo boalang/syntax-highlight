@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: fix-point
+# key: fixp
+# --
+${1:name} := fixp(${2:curr}, ${3:prev}: ${4:type}): bool {
+    return $0;
+}

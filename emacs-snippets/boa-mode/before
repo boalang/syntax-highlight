@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name: Before
+# key: before
+# --
+before ${1:n}: ${2:type} -> {
+    $0
+}
