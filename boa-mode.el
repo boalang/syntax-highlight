@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.0.1
+;; Version: 1.1.0
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -181,6 +181,11 @@
                        "yearof")
   "List of builtins for `boa-mode'.")
 
+(define-abbrev-table 'boa-mode-abbrev-table
+  '()
+  "Abbrev table for Boa mode."
+  :parents '(c-mode-abbrev-table))
+
 (defvar boa-mode-font-lock-keywords
   `((("\"\\.\\*\\?" . font-lock-string-face)
      (,(regexp-opt boa-errors 'symbols) . font-lock-warning-face)
@@ -194,6 +199,7 @@
 (define-derived-mode boa-mode c-mode "Boa"
   "Boa Mode is a major mode for editing Boa language files."
   :syntax-table boa-mode-syntax-table
+  :abbrev-table boa-mode-abbrev-table
   (setq comment-start "# "
         comment-end ""
         font-lock-defaults boa-mode-font-lock-keywords
