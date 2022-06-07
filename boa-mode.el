@@ -39,7 +39,7 @@
     table)
   "Syntax table for `boa-mode'.")
 
-(defvar boa-errors'("goto" "const")
+(defvar boa-errors '("goto" "const")
   "List of error keywords in `boa-mode'")
 
 (defvar boa-keywords '("if" "else" "switch" "before" "after" "case" "default"
