@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.2.1
+;; Version: 1.3.0
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -36,6 +36,7 @@
     (c-populate-syntax-table table)
     (modify-syntax-entry ?# "<. " table)
     (modify-syntax-entry ?\n "> " table)
+    (modify-syntax-entry ?@ "$" table)
     table)
   "Syntax table for `boa-mode'.")
 
@@ -215,17 +216,113 @@
 (with-eval-after-load 'yasnippet
   (boa-mode-enable-snippets))
 
+(defvar-local boa-project-dir nil
+  "Directory of current Boa project.")
+
+(defvar-local boa-file-relative-name nil
+  "Relative name of Boa file.")
+
+(defvar-local boa-project-study-config-p nil
+  "Boa study configuration file presence, nil if not present, Lisp timestamp if present.")
+
+(defun boa--study-config-file ()
+  (expand-file-name "study-config.json" boa-project-dir))
+
+(defvar-local boa-project-study-config nil
+  "Boa project study configuration.")
+
+(defvar-local boa-project-query-outputs nil
+  "List of possible outputs for the current Boa query file.")
+
+(defvar-local boa-project-csv-outputs nil
+  "List of possible CSV outputs for the current Boa query file.")
+
+(defvar-local boa-project-query-analyses nil
+  "List of analyses for the current Boa query file.")
+
+(defun boa--parse-study-config ()
+  (when (or (null boa-project-study-config)
+           (< (time-convert boa-project-study-config-p 'integer)
+              (time-convert (file-attribute-modification-time (file-attributes (boa--study-config-file))) 'integer)))
+    (message "Parsing Study Configuration.")
+    (setq-local boa-project-study-config
+                (let ((file (boa--study-config-file)))
+                  (with-temp-buffer
+                    (insert-file-contents file)
+                    (json-parse-buffer)))
+                boa-project-study-config-p (file-attribute-modification-time (file-attributes (boa--study-config-file))))
+    (let ((current-outputs (list))
+          (current-csvs (list))
+          (current-analyses (list)))
+      (maphash #'(lambda (key value)
+                   (when (string= boa-file-relative-name (gethash "query" value))
+                     (push key current-outputs)
+                     (when-let ((csv-decl (gethash "csv" value)))
+                       (push (gethash "output" csv-decl) current-csvs))))
+               (gethash "queries" boa-project-study-config))
+      (maphash #'(lambda (key value)
+                   (when (intersection (append current-outputs current-csvs)
+                                       (mapcar #'identity (gethash "input" value))
+                                       :test #'string=)
+                     (push key current-analyses)))
+               (gethash "analyses" boa-project-study-config))
+      (setq-local boa-project-query-outputs (mapcar #'(lambda (output) (format "data/txt/%s" output)) current-outputs)
+                  boa-project-csv-outputs (mapcar #'(lambda (csv) (format "data/csv/%s" csv)) current-csvs)
+                  boa-project-query-analyses (mapcar #'file-name-sans-extension current-analyses)))))
+
+(defun boa-run-query (query)
+  "Run the Boa query QUERY."
+  (interactive (list (progn (boa--parse-study-config)
+                            (completing-read "Query: " boa-project-query-outputs nil t))))
+  (let ((default-directory boa-project-dir))
+    (compile (format "make %s" query))))
+
+(defun boa-run-csv (csv)
+  "Generate csv file CSV."
+  (interactive (list (progn (boa--parse-study-config)
+                            (completing-read "CSV: " boa-project-csv-outputs nil t))))
+  (let ((default-directory boa-project-dir))
+    (compile (format "make %s" csv))))
+
+(defun boa-run-analysis (analysis)
+  "Run the analysis ANALYSIS."
+  (interactive (list (progn (boa--parse-study-config)
+                            (completing-read "Analysis: " boa-project-query-analyses nil t))))
+  (let ((default-directory boa-project-dir))
+    (compile (format "make %s" analysis))))
+
+(defvar boa-mode-map
+  (let ((map (c-make-inherited-keymap)))
+    map))
+
+(define-key boa-mode-map (kbd "C-c C-r q") #'boa-run-query)
+(define-key boa-mode-map (kbd "C-c C-r c") #'boa-run-csv)
+(define-key boa-mode-map (kbd "C-c C-r a") #'boa-run-analysis)
+
 ;;;###autoload
 (define-derived-mode boa-mode c-mode "Boa"
   "Boa Mode is a major mode for editing Boa language files."
   :syntax-table boa-mode-syntax-table
   :abbrev-table boa-mode-abbrev-table
-  (setq comment-start "# "
-        comment-end ""
-        font-lock-defaults boa-mode-font-lock-keywords
-        tab-width 4
-        c-basic-offset 4
-        indent-tabs-mode nil))
+  (progn
+    (setq comment-start "# "
+          comment-end ""
+          font-lock-defaults boa-mode-font-lock-keywords
+          tab-width 4
+          c-basic-offset 4
+          indent-tabs-mode nil)
+    (c-set-offset 'label 0)
+    (c-set-offset 'substatement-label 0)
+    (c-set-offset 'case-label 0)
+    (c-set-offset 'access-label 0)
+    (setq-local boa-project-dir (cdr (project-current)))
+    (when (stringp boa-project-dir)
+      (setq-local boa-file-relative-name (file-relative-name (buffer-file-name) (expand-file-name "boa" boa-project-dir))))
+    (when (and (stringp boa-project-dir)
+             (file-exists-p (boa--study-config-file)))
+      (setq-local boa-project-study-config-p (file-attribute-modification-time (file-attributes (boa--study-config-file))))
+      (boa--parse-study-config))
+    (c-run-mode-hooks 'c-mode-common-hook)))
 
 (add-to-list 'auto-mode-alist '("\\.boa\\'" . boa-mode))
 
