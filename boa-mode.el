@@ -273,31 +273,34 @@
 (defvar-local boa-run-verbose nil
   "Should boa queries run with verbosity?")
 
+(defun boa-compile (target)
+  (let ((verboseness (cond
+                      ((integerp boa-run-verbose)
+                       (format " VERBOSE=-%s" (make-string boa-run-verbose ?v)))
+                      (boa-run-verbose
+                       " VERBOSE=-v")
+                      (t ""))))
+    (let  ((compilation-directory boa-project-dir)
+           (default-directory boa-project-dir))
+      (compilation-start (format "make%s %s" verboseness target) t))))
+
 (defun boa-run-query (query)
   "Run the Boa query QUERY."
   (interactive (list (progn (boa--parse-study-config)
                             (completing-read "Query: " boa-project-query-outputs nil t))))
-  (let ((default-directory boa-project-dir))
-    (compile (format (if boa-run-verbose
-                         (format "make VERBOSE=-%s %%s"
-                                 (if (numberp boa-run-verbose)
-                                     (make-string boa-run-verbose ?v)
-                                   "v"))
-                       "make %s") query))))
+  (boa-compile query))
 
 (defun boa-run-csv (csv)
   "Generate csv file CSV."
   (interactive (list (progn (boa--parse-study-config)
                             (completing-read "CSV: " boa-project-csv-outputs nil t))))
-  (let ((default-directory boa-project-dir))
-    (compile (format "make %s" csv))))
+  (boa-compile csv))
 
 (defun boa-run-analysis (analysis)
   "Run the analysis ANALYSIS."
   (interactive (list (progn (boa--parse-study-config)
                             (completing-read "Analysis: " boa-project-query-analyses nil t))))
-  (let ((default-directory boa-project-dir))
-    (compile (format "make %s" analysis))))
+  (boa-compile analysis))
 
 (defvar boa-mode-map
   (let ((map (c-make-inherited-keymap)))
