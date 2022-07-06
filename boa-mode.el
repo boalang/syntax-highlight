@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.3.0
+;; Version: 1.3.1
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -270,12 +270,20 @@
                   boa-project-csv-outputs (mapcar #'(lambda (csv) (format "data/csv/%s" csv)) current-csvs)
                   boa-project-query-analyses (mapcar #'file-name-sans-extension current-analyses)))))
 
+(defvar-local boa-run-verbose nil
+  "Should boa queries run with verbosity?")
+
 (defun boa-run-query (query)
   "Run the Boa query QUERY."
   (interactive (list (progn (boa--parse-study-config)
                             (completing-read "Query: " boa-project-query-outputs nil t))))
   (let ((default-directory boa-project-dir))
-    (compile (format "make %s" query))))
+    (compile (format (if boa-run-verbose
+                         (format "make VERBOSE=-%s %%s"
+                                 (if (numberp boa-run-verbose)
+                                     (make-string boa-run-verbose ?v)
+                                   "v"))
+                       "make %s") query))))
 
 (defun boa-run-csv (csv)
   "Generate csv file CSV."
