@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.4.1
+;; Version: 1.4.2
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -28,6 +28,8 @@
 ;; (https://boa.cs.iastate.edu).  More features are coming.
 
 (require 'cc-langs)
+(require 'cc-mode)
+(require 'cl-lib)
 
 ;;; Code:
 
@@ -221,7 +223,7 @@
 (defvar boa-eldoc-docs-table
   (let ((table (obarray-make)))
     (mapcar #'(lambda (x)
-                (destructuring-bind (item description) x
+                (cl-destructuring-bind (item description) x
                   (set (intern (upcase item) table) description)))
             '(;; Built-in Functions
               ("sort" "(t: time, n: int [, timezone: string]): time")
