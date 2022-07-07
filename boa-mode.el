@@ -156,9 +156,10 @@
   "List of analyses for the current Boa query file.")
 
 (defun boa--parse-study-config ()
-  (when (or (null boa-project-study-config)
-           (< (time-convert boa-project-study-config-p 'integer)
-              (time-convert (file-attribute-modification-time (file-attributes (boa--study-config-file))) 'integer)))
+  (when  (and (fboundp 'json-parse-buffer)
+            (or (null boa-project-study-config)
+               (< (time-convert boa-project-study-config-p 'integer)
+                  (time-convert (file-attribute-modification-time (file-attributes (boa--study-config-file))) 'integer))))
     (message "Parsing Study Configuration.")
     (setq-local boa-project-study-config
                 (let ((file (boa--study-config-file)))
