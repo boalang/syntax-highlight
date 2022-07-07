@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.3.1
+;; Version: 1.3.2
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -30,6 +30,9 @@
 (require 'cc-langs)
 
 ;;; Code:
+
+
+;;; Basic Syntax
 
 (defvar boa-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -60,132 +63,33 @@
                     "sum" "collection" "top" "bottom" "set" "minimum" "maximum" "mean")
   "List of known types for the Boa language.")
 
-(defvar boa-builtins '("acosh"
-                       "addday"
-                       "addmonth"
-                       "addweek"
-                       "addyear"
-                       "asinh"
-                       "assert"
-                       "assignlatestvalue"
-                       "atanh"
-                       "cnf"
-                       "collect_annotations"
-                       "collect_generic_types"
-                       "converttoarray"
-                       "converttosymbolicname"
-                       "dayofmonth"
-                       "dayofweek"
-                       "dayofyear"
-                       "debug"
-                       "def"
-                       "dnf"
-                       "dot"
-                       "format"
-                       "formattime"
-                       "get_annotation"
-                       "getast"
-                       "getastcount"
-                       "getcdg"
-                       "getcfg"
-                       "getcfgslice"
-                       "getcomments"
-                       "getcrypthash"
-                       "getddg"
-                       "getissues"
-                       "getlang"
-                       "get_metric_noa"
-                       "get_metric_noc"
-                       "get_metric_noo"
-                       "get_metric_npm"
-                       "getnoargsvariables"
-                       "get_nodes_with_definition"
-                       "getpdg"
-                       "getpdgslice"
-                       "getpdtree"
-                       "getpreviousversion"
-                       "getrevision"
-                       "getrevisionindex"
-                       "getrevisionindex2"
-                       "getrevisionscount"
-                       "getsnapshot"
-                       "getsnapshotbyid"
-                       "getsnapshotbyindex"
-                       "get_variable_def"
-                       "get_variable_killed"
-                       "get_variable_used"
-                       "has_annotation"
-                       "hasfiletype"
-                       "has_modifier"
-                       "has_modifier_final"
-                       "has_modifier_namespace"
-                       "has_modifier_private"
-                       "has_modifier_protected"
-                       "has_modifier_public"
-                       "has_modifier_static"
-                       "has_modifier_synchronized"
-                       "has_visibility"
-                       "hourof"
-                       "isboollit"
-                       "ischarlit"
-                       "isfinite"
-                       "isfixingrevision"
-                       "isfloatlit"
-                       "isintlit"
-                       "iskind"
-                       "isliteral"
-                       "isnan"
-                       "isnormal"
-                       "isnulllit"
-                       "isstringlit"
-                       "istypelit"
-                       "join"
-                       "lowercase"
-                       "match"
-                       "matchposns"
-                       "matchstrs"
-                       "minuteof"
-                       "monthof"
-                       "new"
-                       "nnf"
-                       "normalize"
-                       "now"
-                       "nrand"
-                       "parse"
-                       "parseexpression"
-                       "prettyprint"
-                       "push"
-                       "pop"
-                       "rand"
-                       "reduce"
-                       "secondof"
-                       "setlang"
-                       "simplify"
-                       "sort"
-                       "split"
-                       "splitn"
-                       "strfind"
-                       "strreplace"
-                       "strrfind"
-                       "substring"
-                       "trim"
-                       "trunc"
-                       "trunctoday"
-                       "trunctohour"
-                       "trunctominute"
-                       "trunctomonth"
-                       "trunctosecond"
-                       "trunctoyear"
-                       "type_name"
-                       "uppercase"
-                       "url"
-                       "yearof")
+(defvar boa-builtins '("acosh" "addday" "addmonth" "addweek" "addyear" "asinh"
+                       "assert" "assignlatestvalue" "atanh" "cnf" "collect_annotations"
+                       "collect_generic_types" "converttoarray" "converttosymbolicname"
+                       "dayofmonth" "dayofweek" "dayofyear" "debug" "def" "dnf" "dot"
+                       "format" "formattime" "get_annotation" "getast" "getastcount"
+                       "getcdg" "getcfg" "getcfgslice" "getcomments" "getcrypthash"
+                       "getddg" "getissues" "getlang" "get_metric_noa" "get_metric_noc"
+                       "get_metric_noo" "get_metric_npm" "getnoargsvariables"
+                       "get_nodes_with_definition" "getpdg" "getpdgslice" "getpdtree"
+                       "getpreviousversion" "getrevision" "getrevisionindex"
+                       "getrevisionindex2" "getrevisionscount" "getsnapshot"
+                       "getsnapshotbyid" "getsnapshotbyindex" "get_variable_def"
+                       "get_variable_killed" "get_variable_used" "has_annotation"
+                       "hasfiletype" "has_modifier" "has_modifier_final" "has_modifier_namespace"
+                       "has_modifier_private" "has_modifier_protected" "has_modifier_public"
+                       "has_modifier_static" "has_modifier_synchronized" "has_visibility"
+                       "hourof" "isboollit" "ischarlit" "isfinite" "isfixingrevision"
+                       "isfloatlit" "isintlit" "iskind" "isliteral" "isnan" "isnormal"
+                       "isnulllit" "isstringlit" "istypelit" "join" "lowercase" "match"
+                       "matchposns" "matchstrs" "minuteof" "monthof" "new" "nnf" "normalize"
+                       "now" "nrand" "parse" "parseexpression" "prettyprint" "push"
+                       "pop" "rand" "reduce" "secondof" "setlang" "simplify" "sort"
+                       "split" "splitn" "strfind" "strreplace" "strrfind" "substring"
+                       "trim" "trunc" "trunctoday" "trunctohour" "trunctominute"
+                       "trunctomonth" "trunctosecond" "trunctoyear" "type_name"
+                       "uppercase" "url" "yearof")
   "List of builtins for `boa-mode'.")
-
-(define-abbrev-table 'boa-mode-abbrev-table
-  '()
-  "Abbrev table for Boa mode."
-  :parents (list c-mode-abbrev-table))
 
 (defvar boa-mode-font-lock-keywords
   `((("\"\\.\\*\\?" . font-lock-string-face)
@@ -195,6 +99,13 @@
      (,(regexp-opt boa-types 'symbols) . font-lock-type-face)
      (,(regexp-opt boa-builtins 'symbols) . font-lock-builtin-face)))
   "Boa font-locking configuration.")
+
+
+;;; Abbreviations and Snippets
+(define-abbrev-table 'boa-mode-abbrev-table
+  '()
+  "Abbrev table for Boa mode."
+  :parents (list c-mode-abbrev-table))
 
 ;; Yasnippet loading code taken in part from yasnippet-radical-snippets
 (defconst boa-mode-snippets-dir
@@ -216,6 +127,8 @@
 (with-eval-after-load 'yasnippet
   (boa-mode-enable-snippets))
 
+
+;; Study Template Support
 (defvar-local boa-project-dir nil
   "Directory of current Boa project.")
 
@@ -282,7 +195,7 @@
                       (t ""))))
     (let  ((compilation-directory boa-project-dir)
            (default-directory boa-project-dir))
-      (compilation-start (format "make%s %s" verboseness target) t))))
+      (compilation-start (format "make%s %s" verboseness target) nil ))))
 
 (defun boa-run-query (query)
   "Run the Boa query QUERY."
@@ -302,6 +215,9 @@
                             (completing-read "Analysis: " boa-project-query-analyses nil t))))
   (boa-compile analysis))
 
+
+
+;;; Boa Mode Map
 (defvar boa-mode-map
   (let ((map (c-make-inherited-keymap)))
     map))
@@ -309,6 +225,9 @@
 (define-key boa-mode-map (kbd "C-c C-r q") #'boa-run-query)
 (define-key boa-mode-map (kbd "C-c C-r c") #'boa-run-csv)
 (define-key boa-mode-map (kbd "C-c C-r a") #'boa-run-analysis)
+
+
+;;; Mode definition
 
 ;;;###autoload
 (define-derived-mode boa-mode c-mode "Boa"
