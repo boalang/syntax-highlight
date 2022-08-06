@@ -36,8 +36,13 @@ second alphabet is
 case sensitive
 
 documentation is
-  "Documentation comments are mapped to strong comments, and any other"
-  "comment is plain comment."
+
+  "This provides support for the Boa language (https://boa.cs.iastate.edu/)."
+  "It may be found at https://github.com/boalang/syntax-highlight/"
+  ""
+  "Basic Boa keywords are supported, but no builtin functions.  In the"
+  "second level, some operators are specially fontified.  There is no"
+  "special fontification for function or variable declarations."
 end documentation
 
 keywords in Keyword are
@@ -77,18 +82,7 @@ optional operators are
    ! \not
 end operators
 
-# Class/Interface declarations
-operators are
-  (/(class|interface)/    # 1. Keyword
-   /([[:space:]]+)/	  # 2. Spaces
-   /([^[:space:]]+)/	  # 3. Class name
-   \1 Keyword_strong, \2 Plain, \3 Label_strong)
-end operators
-
 sequences are
-    "/*" Comment Comment "*/" Comment,
-    "/**" Comment_strong Comment_strong "*/" Comment_strong,
-    "//" Comment,
     "#" Comment,
     "{@" Label Label "@}" Label,
     C-string
