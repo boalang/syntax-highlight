@@ -1,7 +1,7 @@
 ;;; boa-study-config.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.1.0
+;; Version: 2.2.0
 ;; Package-Requires: ((boa-sc-data "1.0.1") (json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -43,42 +43,43 @@
 
 ;;; Current Context
 
+(defun boa-study-config--get-path ()
+  "Get the path & remove quotes."
+  (mapcar (lambda (x)
+            (if (stringp x)
+                (substring x 1 (1- (length x)))
+              (format "%d" x)))
+          (jsons-get-path)))
+
 (defun boa-study-config-current-context ()
   "Determine current context."
-  (when-let ((path (jsons-get-path)))
+  (when-let ((path (boa-study-config--get-path)))
     (cond
-     ((and (stringp (nth 0 path))
-           (string= (nth 0 path) "\"query\""))
+     ((string= (nth 0 path) "query")
       :query-fn)
-     ((and (string= (car (last path)) "\"queries\"")
+     ((and (string= (car (last path)) "queries")
            (= (length path) 2))
       :output-fn)
-     ((and (stringp (nth 0 path))
-           (string= (nth 0 path) "\"file\"")
-           (stringp (nth (1- (length path)) path))
-           (string= (nth (1- (length path)) path) "\"substitutions\""))
+     ((and (string= (nth 0 path) "file")
+           (string= (nth (1- (length path)) path) "substitutions"))
       :substitution-fn)
-     ((and (stringp (nth 1 path))
-           (string= (nth 1 path) "\"input\""))
+     ((and
+       (string= (nth 1 path) "input"))
       :inputs-list)
-     ((and (stringp (nth 0 path))
-           (string= (nth 0 path) "\"dataset\""))
+     ((string= (nth 0 path) "dataset")
       :dataset-name)
-     ((and (cl-member "\"processors\"" (cl-remove-if #'numberp path) :test #'string=)
-           (stringp (nth 0 path))
-           (string= (nth 0 path) "\"output\""))
+     ((and (cl-member "processors" path :test #'string=)
+           (string= (nth 0 path) "output"))
       :processor-output)
-     ((and (stringp (nth 1 path))
-           (string= (nth 1 path) "\"processors\""))
-      :processor-fn)
-     ((and (stringp (nth 0 path))
-           (string= (nth 0 path) "\"csv\""))
+     ( (string= (nth 1 path) "processors")
+       :processor-fn)
+     ((and
+       (string= (nth 0 path) "csv"))
       :csv-as-fn)
-     ((and (cl-member "\"csv\"" (cl-remove-if #'numberp path) :test #'string=)
-           (stringp (nth 0 path))
-           (string= (nth 0 path) "\"output\""))
+     ((and (cl-member "csv" path :test #'string=)
+           (string= (nth 0 path) "output"))
       :csv-output)
-     ((cl-member "\"analyses\"" (cl-remove-if #'numberp path) :test #'string=)
+     ((cl-member "analyses" path :test #'string=)
       :analysis-fn))))
 
 
