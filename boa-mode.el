@@ -130,6 +130,20 @@
   (boa-mode-enable-snippets))
 
 
+;; Autocompletion
+
+(defun boa-autocomplete-symbol ()
+  "Autocomplete symbols in Boa."
+  (let* ((symbol-bounds (bounds-of-thing-at-point 'symbol))
+         (symbol-start (car symbol-bounds))
+         (symbol-end (cdr symbol-bounds)))
+    (list symbol-start
+          symbol-end
+          (append boa-keywords
+                  boa-types
+                  boa-builtins))))
+
+
 ;;; Mode definition
 (defun boa-update-modeline (original)
   "Update modeline, advice around `c-update-modeline' (ORIGINAL)."
@@ -183,7 +197,8 @@
     (c-set-offset 'substatement-label 0)
     (c-set-offset 'case-label 0)
     (c-set-offset 'access-label 0)
-    (c-run-mode-hooks 'c-mode-common-hook)))
+    (c-run-mode-hooks 'c-mode-common-hook)
+    (setq-local completion-at-point-functions (cons 'boa-autocomplete-symbol completion-at-point-functions))))
 
 (add-to-list 'auto-mode-alist '("\\.boa\\'" . boa-mode))
 
