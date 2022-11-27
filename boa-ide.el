@@ -1,7 +1,7 @@
 ;;; boa-ide.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.0.0
+;; Version: 2.1.0
 ;; Package-Requires: ((boa-sc-data "1.0.0") (boa-mode "1.4.4"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -46,18 +46,20 @@
 (defun boa-ide-run-query (query)
   "Run the Boa query QUERY."
   (interactive (list (completing-read "Query: "
-                                      (boa-sc-outputs-query boa-ide-project-dir
-                                                            boa-ide-file-relative-name)
+                                      (mapcar (apply-partially 'format "data/txt/%s")
+                                              (boa-sc-outputs-query boa-ide-project-dir
+                                                                    boa-ide-file-relative-name))
                                       nil t)))
-  (boa-sc-compile boa-ide-project-dir (format "data/txt/%s" query)))
+  (boa-sc-compile boa-ide-project-dir query))
 
 (defun boa-ide-run-csv (csv)
   "Generate csv file CSV."
   (interactive (list (completing-read "CSV: "
-                                      (boa-sc-csv-query boa-ide-project-dir
-                                                        boa-ide-file-relative-name)
+                                      (mapcar (apply-partially 'format "data/csv/%s")
+                                              (boa-sc-csv-query boa-ide-project-dir
+                                                                boa-ide-file-relative-name))
                                       nil t)))
-  (boa-sc-compile boa-ide-project-dir (format "data/csv/%s" csv)))
+  (boa-sc-compile boa-ide-project-dir csv))
 
 (defun boa-ide-run-analysis (analysis)
   "Run the analysis ANALYSIS."
@@ -66,6 +68,26 @@
                                                              boa-ide-file-relative-name)
                                       nil t)))
   (boa-sc-compile boa-ide-project-dir analysis))
+
+(defun boa-ide-run-any (target)
+  "Run TARGET."
+  (interactive (list (completing-read "Target: "
+                                      (append
+                                       (mapcar (apply-partially 'format "data/txt/%s")
+                                               (boa-sc-outputs-query boa-ide-project-dir
+                                                                     boa-ide-file-relative-name))
+                                       (mapcar (apply-partially 'format "data/csv/%s")
+                                               (boa-sc-csv-query boa-ide-project-dir
+                                                                 boa-ide-file-relative-name))
+                                       (boa-sc-analyses-query boa-ide-project-dir
+                                                              boa-ide-file-relative-name))
+                                      nil t)))
+  (boa-sc-compile boa-ide-project-dir target))
+
+(defun boa-ide-pop-to-study-config ()
+  "Pop to buffer's study-config."
+  (interactive)
+  (pop-to-buffer (boa-sc-get-study-config-buffer boa-ide-project-dir)))
 
 
 ;;; Completion
@@ -99,7 +121,9 @@
                 (define-key map (kbd binding) function)))
           '(("C-c C-r q" boa-ide-run-query)
             ("C-c C-r c" boa-ide-run-csv)
-            ("C-c C-r a" boa-ide-run-analysis)))
+            ("C-c C-r a" boa-ide-run-analysis)
+            ("C-c C-r C" boa-ide-pop-to-study-config)
+            ("C-c C-c" boa-ide-run-any)))
     map)
   "Keymap for Boa IDE Support.")
 
