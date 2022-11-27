@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.4.4
+;; Version: 1.5.0
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -131,6 +131,36 @@
 
 
 ;;; Mode definition
+(defun boa-update-modeline (original)
+  "Update modeline, advice around `c-update-modeline' (ORIGINAL)."
+  (if (derived-mode-p 'boa-mode)
+      (let ((fmt (format "/%s%s%s%s%s%s"
+		         (if c-block-comment-flag "*" "/")
+		         (if c-electric-flag "l" "")
+		         (if (and c-electric-flag c-auto-newline)
+			     "a" "")
+		         (if c-hungry-delete-key "h" "")
+		         (if (and
+			      ;; (cc-)subword might not be loaded.
+			      (boundp 'c-subword-mode)
+			      (symbol-value 'c-subword-mode))
+                             ;; FIXME: subword-mode already comes with its
+                             ;; own lighter!
+			     "w"
+		           "")
+                         (if (bound-and-true-p boa-ide-mode)
+                             "(IDE)" "")))
+            (bare-mode-name (if (string-match "\\(^[^/]*\\)/" mode-name)
+			        (match-string 1 mode-name)
+			      mode-name)))
+
+        (setq mode-name
+	      (if (> (length fmt) 1)
+	          (concat bare-mode-name fmt)
+	        bare-mode-name))
+        (force-mode-line-update))
+    (funcall original)))
+(advice-add 'c-update-modeline :around #'boa-update-modeline)
 
 (defvar boa-mode-map
   (let ((map (c-make-inherited-keymap)))
