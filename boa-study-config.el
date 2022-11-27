@@ -1,7 +1,7 @@
 ;;; boa-ide.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 0.0.1
+;; Version: 1.0.0
 ;; Package-Requires: ((json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -259,23 +259,24 @@
 
 ;;; Commands
 
+(defun boa-sc-ffap-file (file-at-point)
+  "Determine the current file from the FILE-AT-POINT."
+  (pcase (boa-sc-current-context)
+    (:query-fn
+     (format "boa/%s" file-at-point))
+    (:substitution-fn
+     (format "boa/snippets/%s" file-at-point))
+    (:inputs-list
+     (format (if (string-suffix-p "csv" file-at-point) "data/csv/%s" "data/txt/%s") file-at-point))
+    (:processor-output file-at-point)
+    ((or :csv-as-fn :csv-output) (format "data/csv/%s" file-at-point))
+    (:output-fn (format "data/txt/%s" file-at-point))
+    (:analysis-def (format "analyses/%s" file-at-point))))
+
 (defun boa-sc-ffap ()
   "Open the file at point."
   (interactive)
-  (when-let ((fap (thing-at-point 'filename t)))
-    (let ((filename
-           (pcase (boa-sc-current-context)
-             (:query-fn
-              (format "boa/%s" fap))
-             (:substitution-fn
-              (format "boa/snippets/%s" fap))
-             (:inputs-list
-              (format (if (string-suffix-p "csv" fap) "data/csv/%s" "data/txt/%s") fap))
-             (:processor-output fap)
-             ((or :csv-as-fn :csv-output) (format "data/csv/%s" fap))
-             (:output-fn (format "data/txt/%s" fap))
-             (:analysis-def (format "analyses/%s" fap)))))
-      (find-file filename))))
+  (find-file (boa-sc-ffap-file (thing-at-point 'filename t))))
 
 
 ;;; Mode definition
@@ -320,6 +321,7 @@
     (message "Boa Study Config...")
     (boa-sc--parse-config)
     (add-hook 'after-save-hook #'boa-sc--parse-config -100 t)
+    (setq-local ffap-alist (cons '(json-mode . boa-sc-ffap-file) ffap-alist))
     (setq-local completion-at-point-functions (cons 'boa-sc-completion-at-point completion-at-point-functions))))
 
 (provide 'boa-study-config)
