@@ -1,8 +1,8 @@
 ;;; boa-study-config.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.0.0
-;; Package-Requires: ((boa-sc-data "1.0.0") (json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
+;; Version: 2.0.1
+;; Package-Requires: ((boa-sc-data "1.0.1") (json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 

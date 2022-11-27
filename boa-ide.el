@@ -1,8 +1,8 @@
 ;;; boa-ide.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.1.0
-;; Package-Requires: ((boa-sc-data "1.0.0") (boa-mode "1.4.4"))
+;; Version: 2.1.1
+;; Package-Requires: ((boa-sc-data "1.0.1") (boa-mode "1.4.4"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 

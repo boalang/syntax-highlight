@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.0.0
+;; Version: 1.0.1
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -93,12 +93,7 @@
   "Get known datasets for PROJECT."
   (let ((outputs (list)))
     (maphash #'(lambda (key value)
-                 (cl-pushnew key outputs :test #'string=)
-                 (when-let ((processors (gethash "processors" value)))
-                   (maphash #'(lambda (key processor)
-                                (when-let ((output (gethash "output" processor)))
-                                  (cl-pushnew (substring output 9) outputs :test #'string=)))
-                            processors)))
+                 (cl-pushnew key outputs :test #'string=))
              (gethash "datasets" (boa-sc-get-data project)))
     outputs))
 
