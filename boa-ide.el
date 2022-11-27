@@ -1,7 +1,7 @@
 ;;; boa-ide.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.4.3
+;; Version: 1.4.4
 ;; Package-Requires: ((boa-mode "1.4.4") (cc-mode "5.33.1") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -172,11 +172,12 @@ nil if a study configuration is not present, a Lisp timestamp if it is.")
                   (file-relative-name (buffer-file-name)
                                       (expand-file-name "boa" boa-ide-project-dir)))
       (when (and (file-exists-p (boa-ide--study-config-file))
-               (fboundp 'json-available-p)
-               (json-available-p))
+                 (fboundp 'json-available-p)
+                 (json-available-p))
         (setq-local boa-ide-study-config-p
                     (file-attribute-modification-time (file-attributes (boa-ide--study-config-file))))
-        (boa-ide-process-study-config)))))
+        (boa-ide-process-study-config)))
+    (c-update-modeline)))
 
 (provide 'boa-ide)
 
