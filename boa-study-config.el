@@ -1,4 +1,4 @@
-;;; boa-ide.el --- Mode for boa language files
+;;; boa-study-config.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 1.0.0
