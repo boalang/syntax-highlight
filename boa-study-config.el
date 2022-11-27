@@ -1,7 +1,7 @@
 ;;; boa-study-config.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.0.1
+;; Version: 2.1.0
 ;; Package-Requires: ((boa-sc-data "1.0.1") (json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -68,6 +68,9 @@
            (stringp (nth 0 path))
            (string= (nth 0 path) "\"output\""))
       :processor-output)
+     ((and (stringp (nth 1 path))
+           (string= (nth 1 path) "\"processors\""))
+      :processor-fn)
      ((and (stringp (nth 0 path))
            (string= (nth 0 path) "\"csv\""))
       :csv-as-fn)
@@ -76,25 +79,34 @@
            (string= (nth 0 path) "\"output\""))
       :csv-output)
      ((cl-member "\"analyses\"" (cl-remove-if #'numberp path) :test #'string=)
-      :analysis-def))))
+      :analysis-fn))))
 
 
 ;;; Completion Commands
 
 (defun boa-study-config-completion-at-point ()
   "Offer relevant completions."
-  (let* ((completions (pcase (boa-study-config-current-context)
-                        (:query-fn
-                         (mapcar #'(lambda (x) (substring x 4))
-                                 (directory-files-recursively "boa/queries" ".*\\.boa$")))
-                        (:substitution-fn
-                         (mapcar #'(lambda (x) (substring x 13))
-                                 (directory-files-recursively "boa/snippets" ".*\\.boa$")))
-                        (:inputs-list
-                         (append (boa-sc-outputs boa-study-config-project-dir)
-                                 (boa-sc-csvs boa-study-config-project-dir)))
-                        (:dataset-name
-                         (boa-sc-datasets boa-study-config-project-dir))))
+  (let* ((completions
+          (pcase (boa-study-config-current-context)
+            (:query-fn
+             (mapcar #'(lambda (x) (substring x 4))
+                     (directory-files-recursively "boa/queries" ".*\\.boa$")))
+            (:substitution-fn
+             (mapcar #'(lambda (x) (substring x 13))
+                     (directory-files-recursively "boa/snippets" ".*\\.boa$")))
+            (:inputs-list
+             (append (boa-sc-outputs boa-study-config-project-dir)
+                     (boa-sc-csvs boa-study-config-project-dir)))
+            (:processor-fn
+             (message "Completing Processor fn")
+             (mapcar #'(lambda (x) (substring x 4))
+                     (directory-files-recursively "bin/" ".*\\.py$")))
+            (:analysis-fn
+             (remove-if (apply-partially 'string-prefix-p "common/")
+                        (mapcar #'(lambda (x) (substring x 9))
+                                (directory-files-recursively "analyses/" ".*\\.py$"))))
+            (:dataset-name
+             (boa-sc-datasets boa-study-config-project-dir))))
          (bounds (bounds-of-thing-at-point 'filename))
          (start (or (car bounds) (point)))
          (end (or (cdr bounds) (point))))
@@ -113,7 +125,7 @@
          :inputs-list
          :output-fn)
      (thing-at-point 'filename))
-    (:analysis-def
+    (:analysis-fn
      (let ((file-name (car (last (butlast (jsons-get-path))))))
        (file-name-sans-extension (substring file-name 1 (1- (length file-name))))))))
 
@@ -142,9 +154,10 @@
     (:inputs-list
      (format (if (string-suffix-p "csv" file-at-point) "data/csv/%s" "data/txt/%s") file-at-point))
     (:processor-output file-at-point)
+    (:processor-fn (format "bin/%s" file-at-point))
     ((or :csv-as-fn :csv-output) (format "data/csv/%s" file-at-point))
     (:output-fn (format "data/txt/%s" file-at-point))
-    (:analysis-def (format "analyses/%s" file-at-point))))
+    (:analysis-fn (format "analyses/%s" file-at-point))))
 
 (defun boa-study-config-ffap ()
   "Open the file at point."
