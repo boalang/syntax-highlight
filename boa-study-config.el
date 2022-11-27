@@ -1,8 +1,8 @@
 ;;; boa-study-config.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.0.0
-;; Package-Requires: ((json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
+;; Version: 2.0.0
+;; Package-Requires: ((boa-sc-data "1.0.0") (json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -27,7 +27,7 @@
 ;; This package provides further support for the Boa Study Template
 ;; (https://github.com/boalang/study-template).
 
-(require 'project)
+(require 'boa-sc-data)
 (require 'cl-lib)
 (require 'json-snatcher)
 (require 'json-mode)
@@ -37,87 +37,13 @@
 
 ;;; Mode variables
 
-
-;;; Data Model
-
-(defvar-local boa-sc-study-config-data nil
-  "Contents of Boa Study Config, parsed.")
-
-(defvar-local boa-sc-study-config-last-parse nil
-  "When was the Study Config last parsed?")
-
-(defun boa-sc--parse-config ()
-  "Parse and store Boa Study Config data."
-  (when (or (null boa-sc-study-config-data)
-            (null boa-sc-study-config-last-parse)
-            (buffer-modified-p)
-            (< (time-convert boa-sc-study-config-last-parse 'integer)
-               (time-convert (file-attribute-modification-time (file-attributes (buffer-file-name))) 'integer)))
-    (let ((new-data (save-excursion
-                      (ignore-errors
-                        (json-parse-buffer :array-type 'list)))))
-      (unless (null new-data)
-        (unless (hash-table-empty-p new-data)
-          (setq-local boa-sc-study-config-last-parse (current-time)
-                      boa-sc-study-config-data new-data))
-        ))
-    (message "Parsed study config.")))
-
-(defun boa-sc--datasets ()
-  "Collect a list of known datasets."
-  (boa-sc--parse-config)
-  (let ((datasets (list)))
-    (maphash #'(lambda (key value)
-                 (cl-pushnew key datasets :test #'string=))
-             (gethash "datasets" boa-sc-study-config-data))
-    datasets))
-
-(defun boa-sc--outputs ()
-  "Collect a list of known outputs."
-  (boa-sc--parse-config)
-  (let ((outputs (list)))
-    (maphash #'(lambda (key value)
-                 (cl-pushnew key outputs :test #'string=)
-                 (when-let ((processors (gethash "processors" value)))
-                   (maphash #'(lambda (key processor)
-                                (when-let ((output (gethash "output" processor)))
-                                  (cl-pushnew (substring output 9) outputs :test #'string=)))
-                            processors)))
-             (gethash "queries" boa-sc-study-config-data))
-    outputs))
-
-(defun boa-sc--csvs ()
-  "Collect a list of known CSV outputs."
-  (boa-sc--parse-config)
-  (let ((csvs (list)))
-    (maphash #'(lambda (key output)
-                 (when-let ((processors (gethash "processors" output)))
-                   (maphash #'(lambda (key processor)
-                                (when-let ((csv (gethash "csv" processor)))
-                                  (if (stringp csv)
-                                      (cl-pushnew csv csvs :test #'string=)
-                                    (cl-pushnew (gethash "output" csv) csvs :test #'string=))))
-                            processors))
-                 (when-let ((csv (gethash "csv" output)))
-                   (if (stringp csv)
-                       (cl-pushnew csv csvs :test #'string=)
-                     (cl-pushnew (gethash "output" csv) csvs :test #'string=))))
-             (gethash "queries" boa-sc-study-config-data))
-    csvs))
-
-(defun boa-sc--analyses ()
-  "Collect a list of known analyses."
-  (boa-sc--parse-config)
-  (let ((analyses (list)))
-    (maphash #'(lambda (key value)
-                 (cl-pushnew key analyses :test #'string=))
-             (gethash "analyses" boa-sc-study-config-data))
-    analyses))
+(defvar-local boa-study-config-project-dir nil
+  "Location of the Boa Study Config project.")
 
 
 ;;; Current Context
 
-(defun boa-sc-current-context ()
+(defun boa-study-config-current-context ()
   "Determine current context."
   (when-let ((path (jsons-get-path)))
     (cond
@@ -136,8 +62,7 @@
            (string= (nth 1 path) "\"input\""))
       :inputs-list)
      ((and (stringp (nth 0 path))
-           (string= (nth 0 path) "\"dataset\"")
-           (setf completions (append (boa-sc--datasets) completions)))
+           (string= (nth 0 path) "\"dataset\""))
       :dataset-name)
      ((and (cl-member "\"processors\"" (cl-remove-if #'numberp path) :test #'string=)
            (stringp (nth 0 path))
@@ -156,42 +81,9 @@
 
 ;;; Completion Commands
 
-(defun boa-sc-complete-dataset (prompt require-match initial-input)
-  "Complete a dataset using PROMPT, with REQUIRE-MATCH and INITIAL-INPUT."
-  (completing-read prompt (boa-sc--datasets)
-                   nil require-match initial-input))
-
-(defun boa-sc-complete-output (prompt require-match initial-input)
-  "Complete an output using PROMPT, with REQUIRE-MATCH and INITIAL-INPUT."
-  (completing-read prompt (mapcar #'(lambda (x) (format "data/txt/%s" x)) (boa-sc--outputs))
-                   nil require-match initial-input))
-
-(defun boa-sc-complete-csv (prompt require-match initial-input)
-  "Complete a CSV using PROMPT, with REQUIRE-MATCH and INITIAL-INPUT."
-  (completing-read prompt (mapcar #'(lambda (x) (format "data/csv/%s" x)) (boa-sc--csvs))
-                   nil require-match initial-input)  )
-
-(defun boa-sc-complete-csv-output (prompt require-match initial-input)
-  "Complete either a CSV or Output using PROMPT, with REQUIRE-MATCH and INITIAL-INPUT."
-  (completing-read prompt (append (mapcar #'(lambda (x) (format "data/txt/%s" x)) (boa-sc--outputs))
-                                  (mapcar #'(lambda (x) (format "data/csv/%s" x)) (boa-sc--csvs)))
-                   nil require-match initial-input))
-
-(defun boa-sc-complete-analysis (prompt require-match initial-input)
-  "Complete an analysis using PROMPT, with REQUIRE-MATCH and INITIAL-INPUT."
-  (completing-read prompt (mapcar #'file-name-sans-extension (boa-sc--analyses))
-                   nil require-match initial-input))
-
-(defun boa-sc-complete-runnable (prompt require-match initial-input)
-  "Complete a runnable using PROMPT, with REQUIRE-MATCH and INITIAL-INPUT."
-  (completing-read prompt (append (mapcar #'(lambda (x) (format "data/txt/%s" x)) (boa-sc--outputs))
-                                  (mapcar #'(lambda (x) (format "data/csv/%s" x)) (boa-sc--csvs))
-                                  (mapcar #'file-name-sans-extension (boa-sc--analyses)))
-                   nil require-match initial-input))
-
-(defun boa-sc-completion-at-point ()
+(defun boa-study-config-completion-at-point ()
   "Offer relevant completions."
-  (let* ((completions (pcase (boa-sc-current-context)
+  (let* ((completions (pcase (boa-study-config-current-context)
                         (:query-fn
                          (mapcar #'(lambda (x) (substring x 4))
                                  (directory-files-recursively "boa/queries" ".*\\.boa$")))
@@ -199,10 +91,10 @@
                          (mapcar #'(lambda (x) (substring x 13))
                                  (directory-files-recursively "boa/snippets" ".*\\.boa$")))
                         (:inputs-list
-                         (append (boa-sc--outputs)
-                                 (boa-sc--csvs)))
+                         (append (boa-sc-outputs boa-study-config-project-dir)
+                                 (boa-sc-csvs boa-study-config-project-dir)))
                         (:dataset-name
-                         (boa-sc--datasets) )))
+                         (boa-sc-datasets boa-study-config-project-dir))))
          (bounds (bounds-of-thing-at-point 'filename))
          (start (or (car bounds) (point)))
          (end (or (cdr bounds) (point))))
@@ -211,10 +103,10 @@
             end
             completions))))
 
-(defun boa-sc-runnable-at-point ()
+(defun boa-study-config-runnable-at-point ()
   "Determine if there is a runnable at point, and return it."
   (interactive)
-  (pcase (boa-sc-current-context)
+  (pcase (boa-study-config-current-context)
     ((or :processor-output
          :csv-as-fn
          :csv-output
@@ -228,40 +120,21 @@
 
 ;;; Build Commands
 
-(defvar-local boa-sc-verbose nil
-  "Should Boa queries be run with verbosity?")
-
-(defun boa-sc-set-verbose (level)
-  "Set the level of verbosity for running from the Study Config."
-  (interactive "NVerbosity (0-5)? \n")
-  (cond
-   ((= level 0)
-    (setq-local boa-sc-verbose nil))
-   ((> level 5)
-    (setq-local boa-sc-verbose 5))
-   ((= level 1)
-    (setq-local boa-sc-verbose t))
-   (t
-    (setq-local boa-sc-verbose level)))
-  (message "Verbosity set to %s." boa-sc-verbose))
-
-(defun boa-sc-compile (target)
-  "Run TARGET from the Boa Study Config."
-  (let ((verboseness (cond)))
-    (let ((compilation-directory default-directory))
-      (compilation-start (format "make %s %s" verboseness target) nil))))
-
-(defun boa-sc-run (target)
-  "Select and run TARGET from Study Config.  Use `boa-sc-runnable-at-point' to determine default input."
-  (interactive (boa-sc-complete-runnable "Study Config Target? " t (boa-sc-runnable-at-point)))
-  (boa-sc-compile target))
+(defun boa-study-config-run (target)
+  "Select and run TARGET from Study Config.  Use `boa-study-config-runnable-at-point' to determine default input."
+  (interactive (completing-read "Study Config Target? "
+                                (append (mapcar #'(lambda (x) (format "data/txt/%s" x)) (boa-sc-outputs boa-study-config-project-dir))
+                                        (mapcar #'(lambda (x) (format "data/csv/%s" x)) (boa-sc-csvs boa-study-config-project-dir))
+                                        (mapcar #'file-name-sans-extension (boa-sc-analyses boa-study-config-project-dir)))
+                                nil t (boa-study-config-runnable-at-point)))
+  (boa-sc-compile boa-study-config-project-dir target))
 
 
 ;;; Commands
 
-(defun boa-sc-ffap-file (file-at-point)
+(defun boa-study-config-ffap-file (file-at-point)
   "Determine the current file from the FILE-AT-POINT."
-  (pcase (boa-sc-current-context)
+  (pcase (boa-study-config-current-context)
     (:query-fn
      (format "boa/%s" file-at-point))
     (:substitution-fn
@@ -273,22 +146,13 @@
     (:output-fn (format "data/txt/%s" file-at-point))
     (:analysis-def (format "analyses/%s" file-at-point))))
 
-(defun boa-sc-ffap ()
+(defun boa-study-config-ffap ()
   "Open the file at point."
   (interactive)
-  (find-file (boa-sc-ffap-file (thing-at-point 'filename t))))
+  (find-file (boa-study-config-ffap-file (thing-at-point 'filename t))))
 
 
 ;;; Mode definition
-
-(setf boa-study-config-mode-map (let ((map (make-sparse-keymap)))
-                                  (mapc #'(lambda (binding)
-                                            (cl-destructuring-bind (binding function) binding
-                                              (define-key map (kbd binding) function)))
-                                        '(("C-c C-s v" boa-sc-set-verbose)
-                                          ("C-c C-s f" boa-sc-ffap)
-                                          ("C-c C-c" boa-sc-run)))
-                                  map))
 
 (defvar boa-study-config-mode-map
   (let ((map (make-sparse-keymap)))
@@ -296,8 +160,8 @@
               (cl-destructuring-bind (binding function) binding
                 (define-key map (kbd binding) function)))
           '(("C-c C-s v" boa-sc-set-verbose)
-            ("C-c C-s f" boa-sc-ffap)
-            ("C-c C-c" boa-sc-run)))
+            ("C-c C-s f" boa-study-config-ffap)
+            ("C-c C-c" boa-study-config-run)))
     map)
   "Keymap for editing of Study Config.")
 
@@ -318,11 +182,9 @@
   :interactive t
   :keymap boa-study-config-mode-map
   (when boa-study-config-mode
-    (message "Boa Study Config...")
-    (boa-sc--parse-config)
-    (add-hook 'after-save-hook #'boa-sc--parse-config -100 t)
-    (setq-local ffap-alist (cons '(json-mode . boa-sc-ffap-file) ffap-alist))
-    (setq-local completion-at-point-functions (cons 'boa-sc-completion-at-point completion-at-point-functions))))
+    (setq-local boa-study-config-project-dir (boa-sc-get-project-dir))
+    (setq-local ffap-alist (cons '(json-mode . boa-study-config-ffap-file) ffap-alist))
+    (setq-local completion-at-point-functions (cons 'boa-study-config-completion-at-point completion-at-point-functions))))
 
 (provide 'boa-study-config)
 
