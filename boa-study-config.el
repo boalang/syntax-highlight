@@ -1,4 +1,4 @@
-;;; boa-study-config.el --- Mode for boa language files
+;;; boa-study-config.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.3.1

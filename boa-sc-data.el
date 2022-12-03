@@ -1,4 +1,4 @@
-;;; boa-sc-data.el --- Data management for study-config data
+;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 1.1.0

@@ -1,4 +1,4 @@
-;;; boa-doc.el --- Eldoc support for the Boa language
+;;; boa-doc.el --- Eldoc support for the Boa language  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 1.4.3

@@ -1,4 +1,4 @@
-;;; boa-ide.el --- Mode for boa language files
+;;; boa-ide.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.2.1
