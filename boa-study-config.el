@@ -1,7 +1,7 @@
 ;;; boa-study-config.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.3.0
+;; Version: 2.3.1
 ;; Package-Requires: ((boa-sc-data "1.1.0") (json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -201,6 +201,9 @@
   :keymap boa-study-config-mode-map
   (when boa-study-config-mode
     (add-hook 'after-save-hook #'boa-study-config-reparse -100 t)
+    (setq-local tab-width 2
+                js-indent-level 2
+                indent-tabs-mode nil)
     (setq-local boa-study-config-project-dir (boa-sc-get-project-dir))
     (setq-local ffap-alist (cons '(json-mode . boa-study-config-ffap-file) ffap-alist))
     (setq-local completion-at-point-functions (cons 'boa-study-config-completion-at-point completion-at-point-functions))))
