@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.0.1
+;; Version: 1.1.0
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -31,6 +31,9 @@
 
 ;; Variables
 
+(defvar boa-sc-buffers (list)
+  "Alist from projects to study-config buffers.")
+
 (defvar boa-sc-data (make-hash-table)
   "Hash table from Project to Study Config data.")
 
@@ -43,14 +46,15 @@
 
 ;; Parsing Data
 
-(defun boa-sc-parse (project buffer)
+(defun boa-sc-parse (project)
   "Parse study config data for PROJECT from BUFFER."
   (when (boa-sc-parse-needed-p project)
-    (let ((new-data (save-current-buffer
-                      (with-current-buffer buffer
-                        (save-mark-and-excursion
-                          (goto-char (point-min))
-                          (json-parse-buffer :array-type 'list))))))
+    (let* ((buffer (boa-sc-get-study-config-buffer project))
+           (new-data (save-current-buffer
+                       (with-current-buffer buffer
+                         (save-mark-and-excursion
+                           (goto-char (point-min))
+                           (json-parse-buffer :array-type 'list))))))
       (unless (null new-data)
         (unless (= 0 (hash-table-count new-data))
           (puthash project new-data boa-sc-data)
@@ -72,14 +76,19 @@
 
 (defun boa-sc-get-study-config-buffer (project)
   "Get the buffer for PROJECT."
-  (save-mark-and-excursion
-    (or (find-buffer-visiting project)
-        (find-file-noselect (boa-sc-get-study-config-file project)))))
+  (if-let ((buffer (cdr (assoc project boa-sc-buffers #'string=))))
+      buffer
+    (let ((buffer (save-mark-and-excursion
+                    (or (find-buffer-visiting (boa-sc-get-study-config-file project))
+                        (find-file-noselect (boa-sc-get-study-config-file project))))))
+      (setf boa-sc-buffers (cons (cons project buffer)
+                                 boa-sc-buffers))
+      buffer)))
 
 (defun boa-sc-get-data (project)
   "Get the study-config data for PROJECT."
   (when (boa-sc-parse-needed-p project)
-    (boa-sc-parse project (boa-sc-get-study-config-buffer project)))
+    (boa-sc-parse project))
   (gethash project boa-sc-data))
 
 (defun boa-sc-get-project-dir ()
