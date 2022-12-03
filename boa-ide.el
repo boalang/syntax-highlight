@@ -1,7 +1,7 @@
 ;;; boa-ide.el --- Mode for boa language files
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.2.0
+;; Version: 2.2.1
 ;; Package-Requires: ((boa-sc-data "1.1.0") (boa-mode "1.4.4"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -130,7 +130,7 @@
 (define-minor-mode boa-ide-mode
   "Provides support for Boa study template projects."
   :lighter nil
-  :interactive t
+  :interactive (list 'boa-mode)
   :keymap boa-ide-mode-map
   (when boa-ide-mode
     (setq-local boa-ide-project-dir (boa-sc-get-project-dir))
