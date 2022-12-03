@@ -1,7 +1,7 @@
 ;;; boa-doc.el --- Eldoc support for the Boa language
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.4.2
+;; Version: 1.4.3
 ;; Package-Requires: ((boa-mode "1.4.3") (cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -190,8 +190,8 @@
 ;;;###autoload
 (define-minor-mode boa-doc-mode
   "Provide support for eldoc in Boa language files."
-  :lighter "BoaDoc"
-  :interactive t
+  :lighter " BoaDoc"
+  :interactive (list 'boa-mode)
   (if boa-doc-mode
       (progn
         (eldoc-mode +1)
