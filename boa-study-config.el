@@ -1,7 +1,7 @@
 ;;; boa-study-config.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.3.1
+;; Version: 2.3.2
 ;; Package-Requires: ((boa-sc-data "1.1.0") (json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -103,9 +103,9 @@
              (mapcar #'(lambda (x) (substring x 4))
                      (directory-files-recursively "bin/" ".*\\.py$")))
             (:analysis-fn
-             (remove-if (apply-partially 'string-prefix-p "common/")
-                        (mapcar #'(lambda (x) (substring x 9))
-                                (directory-files-recursively "analyses/" ".*\\.py$"))))
+             (cl-remove-if (apply-partially 'string-prefix-p "common/")
+                           (mapcar #'(lambda (x) (substring x 9))
+                                   (directory-files-recursively "analyses/" ".*\\.py$"))))
             (:dataset-name
              (boa-sc-datasets boa-study-config-project-dir))))
          (bounds (bounds-of-thing-at-point 'filename))
