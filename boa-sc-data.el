@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.1.0
+;; Version: 1.1.1
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -76,6 +76,7 @@
 
 (defun boa-sc-get-study-config-buffer (project)
   "Get the buffer for PROJECT."
+  (setf boa-sc-buffers (cl-remove-if-not #'buffer-live-p boa-sc-buffers :key #'cdr))
   (if-let ((buffer (cdr (assoc project boa-sc-buffers #'string=))))
       buffer
     (let ((buffer (save-mark-and-excursion
