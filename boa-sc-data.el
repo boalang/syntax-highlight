@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.1.3
+;; Version: 1.2.0
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -99,6 +99,16 @@
    (locate-dominating-file              ; More general than previous `project-current' call (does not need to fit definition of "project")
     (buffer-file-name (current-buffer)) "study-config.json")))
 
+(defun boa-sc-get-or-read-project (prompt)
+  "PROMPT for a known boa-sc project."
+  (or (boa-sc-get-project-dir)
+      (completing-read prompt
+                       (let ((projs (list)))
+                         (maphash #'(lambda (key val)
+                                      (cl-pushnew key projs :test #'string=))
+                                  boa-sc-data)
+                         projs)
+                       nil t)))
 
 
 ;; Get Boa items
@@ -216,14 +226,7 @@ used.  When LEVEL is 1, simply set to t.  If less than or equal
 to 0, clear verbosity setting.  If greater than 5, cap to 5, in
 any other case, set to provided value."
   (interactive (list (prefix-numeric-value current-prefix-arg)
-                     (or (boa-sc-get-project-dir)
-                         (completing-read "Project? "
-                                          (let ((projs (list)))
-                                            (maphash #'(lambda (key val)
-                                                         (cl-pushnew key projs :test #'string=))
-                                                     boa-sc-data)
-                                            projs)
-                                          nil t))))
+                     (boa-sc-get-or-read-project "Project? ")))
   (cond
    ((<= level 0)
     (remhash project boa-sc-verbosity))
@@ -235,15 +238,21 @@ any other case, set to provided value."
     (puthash project level boa-sc-verbosity))))
 
 (defun boa-sc-get-verbosity (project)
-  "Get a string describing verbosity for PROJECT."
-  (let ((verbosity-value (gethash project boa-sc-verbosity)))
-    (cond
-     ((integerp verbosity-value)
-      (format " VERBOSE=-%s" (make-string verbosity-value ?v)))
-     ((null verbosity-value)
-      "")
-     (t
-      " VERBOSE=-v"))))
+  "Get a string describing verbosity for PROJECT.
+
+If called interactively, print as a message."
+  (interactive (list (boa-sc-get-or-read-project "Project? ")))
+  (let* ((verbosity-value (gethash project boa-sc-verbosity))
+         (verbosity-string (cond
+                            ((integerp verbosity-value)
+                             (format "VERBOSE=-%s" (make-string verbosity-value ?v)))
+                            ((null verbosity-value)
+                             "")
+                            (t
+                             "VERBOSE=-v"))))
+    (if (called-interactively-p 'interactive)
+        (message "Compilations will be called with `%s'." verbosity-string)
+      (format " %s" verbosity-string))))
 
 (defun boa-sc-compile (project target)
   "Compile TARGET in PROJECT."
