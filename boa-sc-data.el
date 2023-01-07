@@ -53,8 +53,9 @@
            (new-data (save-current-buffer
                        (with-current-buffer buffer
                          (save-mark-and-excursion
-                           (goto-char (point-min))
-                           (json-parse-buffer :array-type 'list))))))
+                           (save-match-data  ;Just don't mess with any mark/buffer/excursion info just in case the buffer is otherwise being visited...
+                             (goto-char (point-min))
+                             (json-parse-buffer :array-type 'list)))))))
       (unless (null new-data)
         (unless (= 0 (hash-table-count new-data))
           (puthash project new-data boa-sc-data)
@@ -64,7 +65,7 @@
   "Is a parse needed for PROJECT?"
   (or (null (gethash project boa-sc-data))
       (null (gethash project boa-sc-last-parse))
-      (< (time-convert (gethash project boa-sc-last-parse) 'integer)
+      (< (time-convert (gethash project boa-sc-last-parse) 'integer) ;Times are stored as a structure that can't be easily compared (I could use `ts.el', but I don't want to add external dependencies)
          (time-convert (file-attribute-modification-time (file-attributes (boa-sc-get-study-config-file project))) 'integer))))
 
 
@@ -76,7 +77,7 @@
 
 (defun boa-sc-get-study-config-buffer (project)
   "Get the buffer for PROJECT."
-  (setf boa-sc-buffers (cl-remove-if-not #'buffer-live-p boa-sc-buffers :key #'cdr))
+  (setf boa-sc-buffers (cl-remove-if-not #'buffer-live-p boa-sc-buffers :key #'cdr)) ;Clear out dead buffers first
   (if-let ((buffer (cdr (assoc project boa-sc-buffers #'string=))))
       buffer
     (let ((buffer (save-mark-and-excursion
