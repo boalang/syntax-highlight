@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.1.2
+;; Version: 1.1.3
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -209,7 +209,12 @@
 
 ;; Compilation Functions
 (defun boa-sc-set-verbose (level project)
-  "Set verbosity to LEVEL for PROJECT."
+  "Set verbosity to LEVEL for PROJECT.
+
+LEVEL can be nil, t or an integer.  When nil, no verbosity is
+used.  When LEVEL is 1, simply set to t.  If less than or equal
+to 0, clear verbosity setting.  If greater than 5, cap to 5, in
+any other case, set to provided value."
   (interactive (list (prefix-numeric-value current-prefix-arg)
                      (or (boa-sc-get-project-dir)
                          (completing-read "Project? "
@@ -220,7 +225,7 @@
                                             projs)
                                           nil t))))
   (cond
-   ((< 0 level)
+   ((<= level 0)
     (remhash project boa-sc-verbosity))
    ((> level 5)
     (puthash project 5 boa-sc-verbosity))
