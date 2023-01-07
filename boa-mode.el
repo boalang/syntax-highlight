@@ -45,6 +45,8 @@
     table)
   "Syntax table for `boa-mode'.")
 
+;; TODO: Read keywords, etc. from JSON file.
+
 (defvar boa-errors '("goto" "const")
   "List of error keywords in the Boa language..")
 
