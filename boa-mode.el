@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.5.0
+;; Version: 1.5.1
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -46,7 +46,7 @@
   "Syntax table for `boa-mode'.")
 
 (defvar boa-errors '("goto" "const")
-  "List of error keywords in `boa-mode'")
+  "List of error keywords in the Boa language..")
 
 (defvar boa-keywords '("if" "else" "switch" "before" "after" "case" "default"
                        "while" "for" "do" "foreach" "exists" "ifall" "visit" "function"
@@ -54,7 +54,7 @@
   "List of keywords for the Boa language.")
 
 (defvar boa-constants '("true" "false" "input")
-  "List of known constants for Boa.")
+  "List of known constants in the Boa language.")
 
 (defvar boa-types '("bool" "byte" "int" "float" "string" "time" "fingerprint" "visitor"
                     "RepositoryKind" "FileKind" "ChangeKind" "StatementKind" "ExpressionKind" "Visibility"
@@ -91,7 +91,7 @@
                        "trim" "trunc" "trunctoday" "trunctohour" "trunctominute"
                        "trunctomonth" "trunctosecond" "trunctoyear" "type_name"
                        "uppercase" "url" "yearof")
-  "List of builtins for `boa-mode'.")
+  "List of builtins in the Boa language.")
 
 (defvar boa-mode-font-lock-keywords
   `((("\"\\.\\*\\?" . font-lock-string-face)
@@ -100,7 +100,7 @@
      (,(regexp-opt boa-constants 'symbols) . font-lock-constant-face)
      (,(regexp-opt boa-types 'symbols) . font-lock-type-face)
      (,(regexp-opt boa-builtins 'symbols) . font-lock-builtin-face)))
-  "Boa font-locking configuration.")
+  "Keywords used to font-lock `boa-mode'.")
 
 
 ;;; Abbreviations and Snippets
@@ -119,7 +119,8 @@
      (load-in-progress load-file-name)
      ((and (boundp 'byte-compile-current-file) byte-compile-current-file)
       byte-compile-current-file)
-     (:else (buffer-file-name))))))
+     (:else (buffer-file-name)))))
+  "Location of pre-build snippets for `boa-mode'.")
 
 (defun boa-mode-enable-snippets ()
   "Load snippets for Boa mode."
@@ -132,8 +133,12 @@
 
 ;; Autocompletion
 
+;; TODO: Autocomplete Names in Scope
+
 (defun boa-autocomplete-symbol ()
-  "Autocomplete symbols in Boa."
+  "Autocompletion provider for `boa-mode'.
+
+Uses `boa-keywords', `boa-types', and `boa-builtins'."
   (let* ((symbol-bounds (bounds-of-thing-at-point 'symbol))
          (symbol-start (car symbol-bounds))
          (symbol-end (cdr symbol-bounds)))
@@ -146,7 +151,10 @@
 
 ;;; Mode definition
 (defun boa-update-modeline (original)
-  "Update modeline, advice around `c-update-modeline' (ORIGINAL)."
+  "Update modeline, advice around `c-update-modeline' (ORIGINAL).
+
+In addition to basic `c-mode' mode line configuration, if
+`boa-ide-mode' is enabled, modify the lighter (show \"(IDE)\")."
   (if (derived-mode-p 'boa-mode)
       (let ((fmt (format "/%s%s%s%s%s%s"
 		         (if c-block-comment-flag "*" "/")
@@ -183,7 +191,11 @@
 
 ;;;###autoload
 (define-derived-mode boa-mode c-mode "Boa"
-  "Boa Mode is a major mode for editing Boa language files."
+  "Boa Mode is a major mode for editing Boa language files.
+
+Basic support is provided by `c-mode', with additional
+font-locking and completion for the Boa language.  At present,
+scope and name resolution is not supported."
   :syntax-table boa-mode-syntax-table
   :abbrev-table boa-mode-abbrev-table
   (progn
