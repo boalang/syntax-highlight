@@ -1,7 +1,7 @@
 ;;; boa-doc.el --- Eldoc support for the Boa language  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.4.3
+;; Version: 2.0.0
 ;; Package-Requires: ((boa-mode "1.4.3") (cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -32,6 +32,39 @@
 (require 'boa-mode)
 
 ;;; Code:
+
+(defvar boa-doc-show-full-p nil
+  "Should full documentation for a function be shown?")
+
+;; TODO: Read from a JSON file
+
+(cl-defstruct boa-doc-argument
+  "Argument to a Boa function.  Name and type required, optionalp defaults to nil."
+  name
+  type
+  (optionalp nil))
+
+(cl-defstruct boa-doc-function-data
+  "Documentation for a Boa function.
+
+`name', `arguments' and `return-type' required.  `variadicp'
+defaults to nil.
+
+If slot `documentation', is filled and `boa-doc-show-full-p' is
+t, show full documentation."
+  name
+  arguments
+  return-type
+  (variadicp nil)
+  documentation)
+
+(defvar boa-doc-documentation-data
+  (let ((table (obarray-make)))
+    (mapc #'(lambda (function-doc)
+              (set (intern (upcase (boa-doc-function-data-name function-doc)) table) function-doc))
+          (list))
+    table)
+  "Documentation data for Boa in annotated format.")
 
 (defvar boa-doc-documentation-table
   (let ((table (obarray-make)))
@@ -177,12 +210,63 @@
                      (match-beginning 0) (match-end 0))
                     argument-index))))))))
 
+(defun boa-doc-format-info (function-name arg-index)
+  "Format documentation for FUNCTION-NAME, given current ARG-INDEX."
+  (if-let ((doc-object (symbol-value (intern-soft (upcase function-name) boa-doc-documentation-data))))
+      (format "(%s)%s%s"
+              (let* ((arguments (boa-doc-function-data-arguments doc-object))
+                     (num-args (length arguments))
+                     (arg-index (1- arg-index))
+                     (i 0))
+                (mapconcat (lambda (argument)
+                             (prog1
+                                 (let ((arg-string
+                                        (format (if (boa-doc-argument-optionalp argument)
+                                                    "[%s: %s%s]"
+                                                  "%s: %s%s")
+                                                (propertize (boa-doc-argument-name argument)
+                                                            'face 'font-lock-variable-name-face)
+                                                (propertize (boa-doc-argument-type argument)
+                                                            'face 'font-lock-keyword-face)
+                                                (if (and (= i (1- num-args))
+                                                         (boa-doc-function-data-variadicp doc-object))
+                                                    "..."
+                                                  ""))))
+                                   (when (boa-doc-argument-optionalp argument)
+                                     (add-face-text-property 0 (length arg-string)
+                                                             'italic
+                                                             t arg-string))
+                                   (when (or (= i arg-index)
+                                             (and (= i (1- num-args))
+                                                  (>= arg-index num-args)))
+                                     (add-face-text-property 0 (length arg-string)
+                                                             'eldoc-highlight-function-argument
+                                                             t arg-string))
+                                   arg-string)
+                               (incf i)))
+                           arguments
+                           ", "))
+              (if (boa-doc-function-data-return-type doc-object)
+                  (format ": %s" (propertize (boa-doc-function-data-return-type doc-object)
+                                             'face 'font-lock-keyword-face))
+                "")
+              (if (and boa-doc-show-full-p (boa-doc-function-data-documentation doc-object))
+                  (let ((doc-string (boa-doc-function-data-documentation doc-object)))
+                    (format "\n\n%s"
+                            (propertize doc-string 'face 'font-lock-comment-face)))
+                ""))
+    (message "Defaulted...")
+    (symbol-value (intern-soft (upcase function-name) boa-doc-documentation-table))))
+
 (defun boa-doc-function (callback)
-  "Provide documentation about the current function or element to CALLBACK."
+  "Display documentation about current function through CALLBACK.
+
+Current function is determined by `boa-get-current-function', and
+formatted with `boa-doc-format-info'."
   (when-let ((current-function-info (boa-get-current-function))
              (current-function-name (car current-function-info))
              (argument-index (cdr current-function-info))
-             (documentation-string (symbol-value (intern-soft (upcase current-function-name) boa-doc-documentation-table))))
+             (documentation-string (boa-doc-format-info current-function-name argument-index)))
     (apply callback documentation-string
            :thing current-function-name
            :face (list 'font-lock-function-name-face))))
