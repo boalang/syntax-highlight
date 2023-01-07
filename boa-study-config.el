@@ -1,7 +1,7 @@
 ;;; boa-study-config.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.3.2
+;; Version: 2.3.3
 ;; Package-Requires: ((boa-sc-data "1.1.0") (json-snatcher "1.0") (json-mode "1.6.0") (project "0.8.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -44,7 +44,7 @@
 ;;; Current Context
 
 (defun boa-study-config--get-path ()
-  "Get the path & remove quotes."
+  "Get a JSON path and remove spurious quotation marks."
   (mapcar (lambda (x)
             (if (stringp x)
                 (substring x 1 (1- (length x)))
@@ -52,7 +52,21 @@
           (jsons-get-path)))
 
 (defun boa-study-config-current-context ()
-  "Determine current context."
+  "Determine context at point using JSON path.
+
+Possible contexts include:
+
+ - `:query-fn' the filename of a Boa query.
+ - `:output-fn' the filename of an output (plain text).
+ - `:substitution-fn' the filename of a substitution.
+ - `:inputs-list' the filename of an input to an analysis.
+ - `:dataset-name' the name of a dataset.
+ - `:processor-output' the filename to the output of a processor.
+ - `:processor-fn' the filename of a processor.
+ - `:csv-as-fn' the filename of a CSV.
+ - `:csv-output' the filename of a CSV in a more complex CSV generation
+   structure.
+ - `:analysis-fn' the filename of an analysis script."
   (when-let ((path (boa-study-config--get-path)))
     (cond
      ((string= (nth 0 path) "query")
@@ -71,8 +85,8 @@
      ((and (cl-member "processors" path :test #'string=)
            (string= (nth 0 path) "output"))
       :processor-output)
-     ( (string= (nth 1 path) "processors")
-       :processor-fn)
+     ((string= (nth 1 path) "processors")
+      :processor-fn)
      ((and
        (string= (nth 0 path) "csv"))
       :csv-as-fn)
@@ -86,7 +100,17 @@
 ;;; Completion Commands
 
 (defun boa-study-config-completion-at-point ()
-  "Offer relevant completions."
+  "Determine possible completions.
+
+Candidates are determined using `boa-study-config-current-context'.
+Applicable contexts (and completions) are:
+
+ - `:query-fn' .boa files from boa/queries.
+ - `:substitution-fn' .boa files from boa/snippets.
+ - `:inputs-list' declared outputs and CSVs within the file.
+ - `:processor-fn' .py files in bin/.
+ - `:analysis-fn' .py files in analyses/ not in analyses/common/.
+ - `:dataset-name' declared datasets within the file."
   (let* ((completions
           (pcase (boa-study-config-current-context)
             (:query-fn
@@ -99,7 +123,6 @@
              (append (boa-sc-outputs boa-study-config-project-dir)
                      (boa-sc-csvs boa-study-config-project-dir)))
             (:processor-fn
-             (message "Completing Processor fn")
              (mapcar #'(lambda (x) (substring x 4))
                      (directory-files-recursively "bin/" ".*\\.py$")))
             (:analysis-fn
@@ -134,7 +157,9 @@
 ;;; Build Commands
 
 (defun boa-study-config-run (target)
-  "Select and run TARGET from Study Config.  Use `boa-study-config-runnable-at-point' to determine default input."
+  "Select and run TARGET from Study Config.
+
+Default for TARGET is determined using `boa-study-config-runnable-at-point'."
   (interactive (completing-read "Study Config Target? "
                                 (append (mapcar #'(lambda (x) (format "data/txt/%s" x)) (boa-sc-outputs boa-study-config-project-dir))
                                         (mapcar #'(lambda (x) (format "data/csv/%s" x)) (boa-sc-csvs boa-study-config-project-dir))
@@ -146,7 +171,10 @@
 ;;; Commands
 
 (defun boa-study-config-ffap-file (file-at-point)
-  "Determine the current file from the FILE-AT-POINT."
+  "Determine the current file from the FILE-AT-POINT.
+
+Possibilities are determined from `boa-study-config-current-context',
+and follow patterns similar to completion."
   (pcase (boa-study-config-current-context)
     (:query-fn
      (format "boa/%s" file-at-point))
@@ -161,7 +189,9 @@
     (:analysis-fn (format "analyses/%s" file-at-point))))
 
 (defun boa-study-config-ffap ()
-  "Open the file at point."
+  "Open the file at point.
+
+Note: Use `find-file-at-point' (\\[find-file-at-point]) instead."
   (interactive)
   (find-file (boa-study-config-ffap-file (thing-at-point 'filename t))))
 
@@ -177,10 +207,13 @@
             ("C-c C-s f" boa-study-config-ffap)
             ("C-c C-c" boa-study-config-run)))
     map)
-  "Keymap for editing of Study Config.")
+  "Keymap for `boa-study-config-mode'.")
 
 (defun boa-study-config-maybe-enable ()
-  "Conditionally enable `boa-study-config-mode'."
+  "Conditionally enable `boa-study-config-mode'.
+
+The study-config mode will be enabled when in `json-mode', and if
+the filename is \"study-config.json\"."
   (when (and (derived-mode-p 'json-mode)
              (string-match-p "study-config.json" (buffer-file-name)))
     (message "Enabling Boa Study Config Mode.")
@@ -195,7 +228,12 @@
   (boa-sc-parse boa-study-config-project-dir))
 
 (define-minor-mode boa-study-config-mode
-  "Provide support for editing Boa study-config.json files."
+  "Provide support for editing Boa \"study-config.json\" files.
+
+Support includes completion, compilation/run, file opening, and
+integration with `find-file-at-point'.
+
+\\{boa-study-config-mode-map}"
   :lighter " Boa/SC"
   :interactive t
   :keymap boa-study-config-mode-map
