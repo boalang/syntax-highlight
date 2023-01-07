@@ -1,7 +1,7 @@
 ;;; boa-doc.el --- Eldoc support for the Boa language  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.0.0
+;; Version: 2.0.1
 ;; Package-Requires: ((boa-mode "1.4.3") (cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -59,12 +59,323 @@ t, show full documentation."
   documentation)
 
 (defvar boa-doc-documentation-data
-  (let ((table (obarray-make)))
+  (let ((table (obarray-make))
+        (format-string (make-boa-doc-argument :name "format"
+                                              :type "string"))
+        (time-t (make-boa-doc-argument :name "t"
+                                       :type "time"))
+        (optional-timezone (make-boa-doc-argument :name "timezone"
+                                                  :type "string"
+                                                  :optionalp t))
+        (int-n (make-boa-doc-argument :name "n"
+                                      :type "int"))
+        (x-float (make-boa-doc-argument :name "x"
+                                        :type "float"))
+        (v-any (make-boa-doc-argument :name "v"
+                                      :type "any_type"))
+        (method-m (make-boa-doc-argument :name "m"
+                                         :type "Method")))
     (mapc #'(lambda (function-doc)
               (set (intern (upcase (boa-doc-function-data-name function-doc)) table) function-doc))
-          (list))
+          (list
+           ;; Built-in Functions
+           ;; ("sort" "(t: time, n: int [, timezone: string]): time")
+           (make-boa-doc-function-data :name "addday"
+                                       :return-type "time"
+                                       :arguments (list time-t int-n optional-timezone)
+                                       :documentation "Add n days to time t.")
+           (make-boa-doc-function-data :name "addmonth"
+                                       :return-type "time"
+                                       :arguments (list time-t int-n optional-timezone)
+                                       :documentation "Add n months to time t.")
+           (make-boa-doc-function-data :name "addweek"
+                                       :return-type "time"
+                                       :arguments (list time-t int-n optional-timezone)
+                                       :documentation "Add n weeks to time t.")
+           (make-boa-doc-function-data :name "addyear"
+                                       :return-type "time"
+                                       :arguments (list time-t int-n optional-timezone)
+                                       :documentation "Add n years to time t.")
+           (make-boa-doc-function-data :name "dayofmonth"
+                                       :return-type "int"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Get day of month from time t.")
+           (make-boa-doc-function-data :name "dayofweek"
+                                       :return-type "int"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Get day of week from time t.")
+           (make-boa-doc-function-data :name "dayofyear"
+                                       :return-type "int"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Get day of year from time t.")
+           (make-boa-doc-function-data :name "formattime"
+                                       :return-type "string"
+                                       :arguments (list format-string time-t optional-timezone)
+                                       :documentation "Format time t.")
+           (make-boa-doc-function-data :name "hourof"
+                                       :return-type "int"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Get the hour of time t.")
+           (make-boa-doc-function-data :name "minuteof"
+                                       :return-type "int"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Get the minute of time t.")
+           (make-boa-doc-function-data :name "monthof"
+                                       :return-type "int"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Get the month of time t.")
+           (make-boa-doc-function-data :name "now"
+                                       :return-type "time"
+                                       :documentation "Get the current time.")
+           (make-boa-doc-function-data :name "secondof"
+                                       :return-type "int"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Get the second of time t.")
+           (make-boa-doc-function-data :name "trunctoday"
+                                       :return-type "time"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Truncate timestamp t to beginning of day.")
+           (make-boa-doc-function-data :name "trunctohour"
+                                       :return-type "time"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Truncate timestamp t to beginning of hour.")
+           (make-boa-doc-function-data :name "trunctominute"
+                                       :return-type "time"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Truncate timestamp t to beginning of minute.")
+           (make-boa-doc-function-data :name "trunctomonth"
+                                       :return-type "time"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Truncate timestamp t to beginning of month.")
+           (make-boa-doc-function-data :name "trunctoyear"
+                                       :return-type "time"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Truncate timestamp t to beginning of year.")
+           (make-boa-doc-function-data :name "yearof"
+                                       :return-type "int"
+                                       :arguments (list time-t optional-timezone)
+                                       :documentation "Get the year of time t.")
+           ;; ("clear" "(t: map[key_type] of val_type) (or set, queue, stack)")
+           ;; ("clone" "(t: map[key_type] of val_type): map[key_type] of val_type (or set, queue, stack)")
+           ;; ("haskey" "(m:map[key_type] of val_type, key: key_type): bool")
+           ;; ("keys" "(m: map[key_type] of val_type): array of key_type")
+           ;; ("lookup" "(m: map[key_type] of val_type, key: key_type, value: val_type): val_type")
+           ;; ("remove" "(m: map[key_type] of val_type, k: key_type) (or set)")
+           ;; ("values" "(m: map[key_type] of val_type): array of val_type (or set, queue, stack)")
+           (make-boa-doc-function :name "highbit"
+                                  :return-type "int"
+                                  :arguments (list int-n)
+                                  :documentation "Return the position of the high bit.")
+           (make-boa-doc-function :name "nrand"
+                                  :return-type "int"
+                                  :arguments (list int-n))
+           (make-boa-doc-function :name "abs"
+                                  :return-type "type (int/float)"
+                                  :arguments (list (make-boa-doc-argument :name "x"
+                                                                          :type "type")))
+           (make-boa-doc-function :name "isfinite"
+                                  :return-type "bool"
+                                  :arguments (list x-float))
+           (make-boa-doc-function :name "isinf"
+                                  :return-type "bool"
+                                  :arguments (list x-float))
+           (make-boa-doc-function :name "isnan"
+                                  :return-type "bool"
+                                  :arguments (list x-float))
+           (make-boa-doc-function :name "isnormal"
+                                  :return-type "bool"
+                                  :arguments (list x-float))
+
+           ;; ("max" "(v1: type, v2: type): type (type is int, time, string, float)")
+           ;; ("min" "(v1: type, v2: type): type (type is int, time, string, float)")
+
+           ;; ("pow" "(x: float, y: float): float")
+           (make-boa-doc-function-data :name "acos"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "acosh"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "asin"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "asinh"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "atan"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "atanh"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "atan2"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "ceil"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "cos"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "cosh"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "exp"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "floor"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "log"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "log10"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "sin"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "sinh"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "sqrt"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "tan"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "tanh"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "trunc"
+                                       :return-type "float"
+                                       :arguments (list x-float))
+           (make-boa-doc-function-data :name "def"
+                                       :return-type "bool"
+                                       :arguments (list v-any)
+                                       :documentation "Is v defined?")
+           (make-boa-doc-function-data :name "hash"
+                                       :return-type "int"
+                                       :arguments (list v-any)
+                                       :documentation "Hash v to an int.")
+           (make-boa-doc-function-data :name "len"
+                                       :return-type "int"
+                                       :arguments (list v-any)
+                                       :documentation "Get length of v.")
+           ;; ("offer" "(q: queue of val_type, val: val_type)")
+           ;; ("peek" "(q: queue/stack of val_type): val_type")
+           ;; ("poll" "(q: queue of val_type): val_type")
+           ;; ("add" "(s: set of val_type, v: val_type)")
+           ;; ("contains" "(s: set of val_type, v: val_type): bool")
+           ;; ("containsall" "(s1: set of val_type, s2: set of val_type): bool")
+           ;; ("difference" "(s1: set of val_type, s2: set of val_type): set of val_type")
+           ;; ("intersect" "(s1: set of val_type, s2: set of val_type): set of val_type")
+           ;; ("symdiff" "(s1: set of val_type, s2: set of val_type): set of val_type")
+           ;; ("union" "(s1: set of val_type, s2: set of val_type): set of val_type")
+           ;; ("pop" "(s: stack of val_type): val_type")
+           ;; ("push" "(s: stack of val_type, val: val_type)")
+           ;; ("format" "(format: string, args: string, ...): string")
+           ;; ("lowercase" "(str: string): string")
+           ;; ("match" "(regex: string, str: string): bool")
+           ;; ("matchposns" "(regex: string, str: string): array of int")
+           ;; ("matchstrs" "(regex: string, str: string): array of string")
+           ;; ("regex" "(t: any_type, base: int): string")
+           ;; ("split" "(s: string, regex: string): array of string")
+           ;; ("splitn" "(n: int, s: string, regex: string): array of string")
+           ;; ("strfind" "(needle: string, haystack: string): int")
+           ;; ("strreplace" "(haystack: string, needle: string, replacement: string, replace_all: bool): string")
+           ;; ("strrfind" "(needle: string, haystack: string): int")
+           ;; ("substr" "substring (str: string, start: int [, end: int] ): string")
+           ;; ("trim" "(str: string): string")
+           ;; ("uppercase" "(str: string): string")
+           ;; ("bool" "(v: basic_type): bool")
+           ;; ("float" "(v: basic_type): float")
+           ;; ("int" "(v: basic_type): int")
+           ;; ("string" "(v: basic_type): string")
+           ;; ("time" "(v: basic_type): time")
+           ;; Domain Specific Functions
+           (make-boa-doc-function-data :name "getast"
+                                       :return-type "ASTRoot"
+                                       :arguments (list (make-boa-doc-argument :name "file"
+                                                                               :type "ChangedFile")))
+           (make-boa-doc-function-data :name "getsnapshot"
+                                       :return-type "array of ChangedFile"
+                                       :arguments (list (make-boa-doc-argument :name "cr"
+                                                                               :type "CodeRepository")
+                                                        (make-boa-doc-argument :name "t"
+                                                                               :type "time"
+                                                                               :optionalp t)
+                                                        (make-boa-doc-argument :name "filters"
+                                                                               :type "string"
+                                                                               ))
+                                       :variadicp t
+                                       :documentation "Get a snapshot of files from cr before t, subject to filters.")
+           (make-boa-doc-function-data :name "hasfiletype"
+                                       :return-type "bool"
+                                       :arguments (list (make-boa-doc-argument :name "data"
+                                                                               :type "dsl_type")
+                                                        (make-boa-doc-argument :name "extension"
+                                                                               :type "string")))
+           (make-boa-doc-function-data :name "isfixingrevision"
+                                       :return-type "bool"
+                                       :arguments (list (make-boa-doc-argument :name "log"
+                                                                               :type "string or Revision")))
+           (make-boa-doc-function-data :name "iskind"
+                                       :return-type "bool"
+                                       :arguments (list (make-boa-doc-argument :name "s"
+                                                                               :type "string")
+                                                        (make-boa-doc-argument :name "k"
+                                                                               :type "dsl_type")))
+           (make-boa-doc-function-data :name "isliteral"
+                                       :return-type "bool"
+                                       :arguments (list (make-boa-doc-argument :name "e"
+                                                                               :type "Expression")
+                                                        (make-boa-doc-argument :name "s"
+                                                                               :type "string")))
+           (make-boa-doc-function-data :name "dot"
+                                       :return-type "string"
+                                       :arguments (list (make-boa-doc-argument :name "g"
+                                                                               :type "graph")))
+           (make-boa-doc-function-data :name "getcdg"
+                                       :return-type "CDG"
+                                       :arguments (list method-m)
+                                       :documentation "Get CDG of method m.")
+           (make-boa-doc-function-data :name "getcfg"
+                                       :return-type "CFG"
+                                       :arguments (list method-m)
+                                       :documentation "Get CFG of method m.")
+           (make-boa-doc-function-data :name "getddg"
+                                       :return-type "DDG"
+                                       :arguments (:list method-m)
+                                       :documentation "Get DDG of method m.")
+           (make-boa-doc-function-data :name "getpdg"
+                                       :return-type "PDG"
+                                       :arguments (list method-m)
+                                       :documentation "Get PDG of method m.")
+           (make-boa-doc-function-data :name "getinedge"
+                                       :return-type "graph_edge"
+                                       :arguments (list (make-boa-doc-argument :name "node1"
+                                                                               :type "graph_node")
+                                                        (make-boa-doc-argument :name "node2"
+                                                                               :type "graph_node"))
+                                       :documentation "Get edge in from node1 to node2.")
+           (make-boa-doc-function-data :name "getoutedge"
+                                       :return-type "graph_edge"
+                                       :arguments (list (make-boa-doc-argument :name "node1"
+                                                                               :type "graph_node")
+                                                        (make-boa-doc-argument :name "node2"
+                                                                               :type "graph_node"))
+                                       :documentation "Get edge out from node1 to node2.")
+           (make-boa-doc-function-data :name "getvalue"
+                                       :return-type "T"
+                                       :arguments (list (make-boa-doc-argument :name "n"
+                                                                               :type "graph_node")
+                                                        (make-boa-doc-argument :name "t"
+                                                                               :type "traversal"
+                                                                               :optionalp t))
+                                       "Perform traversal t starting at node n returning value.")))
     table)
-  "Documentation data for Boa in annotated format.")
+  "Documentation data for Boa in rich-data format.")
 
 (defvar boa-doc-documentation-table
   (let ((table (obarray-make)))
@@ -73,25 +384,6 @@ t, show full documentation."
                 (set (intern (upcase item) table) description)))
           '(;; Built-in Functions
             ("sort" "(t: time, n: int [, timezone: string]): time")
-            ("addday" "(t: time, n: int [, timezone: string]): time")
-            ("addmonth" "(t: time, n: int [, timezone: string]): time")
-            ("addweek" "(t: time, n: int [, timezone: string]): time")
-            ("addyear" "(t: time, n: int [, timezone: string]): time")
-            ("dayofmonth" "(t: time [, timezone: string]): int")
-            ("dayofweek" "(t: time [, timezone: string]): int")
-            ("dayofyear" "(t: time [, timezone: string]): int")
-            ("formattime" "(format: string, t: time [, timezone: string]): string")
-            ("hourof" "(t: time [, timezone: string]): int")
-            ("minuteof" "(t: time [, timezone: string]): int")
-            ("monthof" "(t: time [, timezone: string]): int")
-            ("now" "(): time")
-            ("secondof" "(t: time [, timezone: string]): int")
-            ("trunctoday" "(t: time [, timezone: string]): time")
-            ("trunctohour" "(t: time [, timezone: string]): time")
-            ("trunctominute" "(t: time [, timezone: string]): time")
-            ("trunctomonth" "(t: time [, timezone: string]): time")
-            ("trunctoyear" "(t: time [, timezone: string]): time")
-            ("yearof" "(t: time [, timezone: string]): int")
             ("clear" "(t: map[key_type] of val_type) (or set, queue, stack)")
             ("clone" "(t: map[key_type] of val_type): map[key_type] of val_type (or set, queue, stack)")
             ("haskey" "(m:map[key_type] of val_type, key: key_type): bool")
@@ -99,39 +391,9 @@ t, show full documentation."
             ("lookup" "(m: map[key_type] of val_type, key: key_type, value: val_type): val_type")
             ("remove" "(m: map[key_type] of val_type, k: key_type) (or set)")
             ("values" "(m: map[key_type] of val_type): array of val_type (or set, queue, stack)")
-            ("abs" "(x: type): type (type is int or float)")
-            ("acos" "(x: float): float")
-            ("acosh" "(x: float): float")
-            ("asin" "(x: float): float")
-            ("asinh" "(x: float): float")
-            ("atan" "(x: float): float")
-            ("atanh" "(x: float): float")
-            ("atan2" "(x: float): float")
-            ("ceil" "(x: float): float")
-            ("cos" "(x: float): float")
-            ("cosh" "(x: float): float")
-            ("exp" "(x: float): float")
-            ("floor" "(x: float): float")
-            ("highbit" "(n: int): int")
-            ("isfinite" "(n: float): bool")
-            ("isinf" "(n: float): bool")
-            ("isnan" "(n: float): bool")
-            ("isnormal" "(n: float): bool")
-            ("log" "(x: float): float")
-            ("log10" "(x: float): float")
             ("max" "(v1: type, v2: type): type (type is int, time, string, float)")
             ("min" "(v1: type, v2: type): type (type is int, time, string, float)")
-            ("nrand" "(n: int): int")
             ("pow" "(x: float, y: float): float")
-            ("sin" "(x: float): float")
-            ("sinh" "(x: float): float")
-            ("sqrt" "(x: float): float")
-            ("tan" "(x: float): float")
-            ("tanh" "(x: float): float")
-            ("trunc" "(x: float): float")
-            ("def" "(v: any_type): bool")
-            ("hash" "(v: any_type): int")
-            ("len" "(v: any_type): int")
             ("offer" "(q: queue of val_type, val: val_type)")
             ("peek" "(q: queue/stack of val_type): val_type")
             ("poll" "(q: queue of val_type): val_type")
@@ -162,22 +424,7 @@ t, show full documentation."
             ("float" "(v: basic_type): float")
             ("int" "(v: basic_type): int")
             ("string" "(v: basic_type): string")
-            ("time" "(v: basic_type): time")
-            ;; Domain Specific Functions
-            ("getast" "(file: ChangedFile): ASTRoot")
-            ("getsnapshot" "(cr: CodeRepository [, t: time] [, filters: string...]): array of ChangedFile")
-            ("hasfiletype" "(data: dsl_type, extension: string): bool")
-            ("isfixingrevision" "(log: string/Revision): bool")
-            ("iskind" "(s: string, k: dsl_type): bool")
-            ("isliteral" "(e: Expression, s: string): bool")
-            ("dot" "(g: graph): string")
-            ("getcdg" "(m: Method): CDG")
-            ("getcfg" "(m: Method): CFG")
-            ("getddg" "(m: Method): DDG")
-            ("getinedge" "(node1: graph_node, node2: graph_node): graph_edge")
-            ("getoutedge" "(node1: graph_node, node2: graph_node): graph_edge")
-            ("getpdg" "(m: Method): PDG")
-            ("getvalue" "(n: graph_node [, t: traversal]): T")))
+            ("time" "(v: basic_type): time")))
     table)
   "Documentation for default functions in the Boa language.")
 
