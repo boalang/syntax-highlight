@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.2.2
+;; Version: 1.2.3
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -218,6 +218,19 @@
              (gethash "analyses" (boa-sc-get-data project)))
     analyses))
 
+(defun boa-sc-snippets-for-query (project query)
+  "Get snippets for QUERY in PROJECT."
+  (let* ((snippets (list))
+         (snip-def-proc (lambda (hash)
+                          (let ((target (gethash "target" hash))
+                                (substitution (gethash "replacement" hash nil))
+                                (file (gethash "file" hash nil)))
+                            (push (list target (if substitution :string :file) (or substitution file)) snippets)))))
+    (mapc snip-def-proc (gethash "substitutions" (boa-sc-get-data project)))
+    (mapc snip-def-proc (gethash "substitutions" (gethash query (gethash "queries" (boa-sc-get-data project)))))
+    (let ((final-snips-list (list)))
+      (dolist (snip snippets final-snips-list)
+        (cl-pushnew snip final-snips-list :test #'string= :key #'cl-first)))))
 
 
 ;; Compilation Functions
