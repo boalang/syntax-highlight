@@ -1,8 +1,8 @@
 ;;; boa-ide.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.2.1
-;; Package-Requires: ((boa-sc-data "1.1.0") (boa-mode "1.4.4"))
+;; Version: 2.3.0
+;; Package-Requires: ((boa-sc-data "1.2.3") (boa-mode "1.4.4"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -90,6 +90,68 @@
   (pop-to-buffer (boa-sc-get-study-config-buffer boa-ide-project-dir)))
 
 
+;;; Preview queries.
+
+(defun boa-ide-prepare-file-replacement (prefix file root)
+  "Prepare FILE (relative to ROOT) for use as replacement, using PREFIX.
+
+PREFIX is checked to ensure that it is only whitespace.  If so,
+it is retained, otherwise, no prefix is used."
+  (let ((prefix (save-match-data
+                  (if (string-match "\\S-" prefix)
+                      nil
+                    prefix)))
+        (file-name  (expand-file-name file (expand-file-name "boa/snippets" root))))
+    (save-match-data
+      (with-temp-buffer
+        (insert-file file-name)
+        (goto-char (point-min))
+        (when prefix
+          (while (progn (forward-line) (not (looking-at "^$")))
+            (beginning-of-line)
+            (insert prefix)))
+        (buffer-string)))))
+
+(defun boa-ide-preview-query (query)
+  "Produce a preview of QUERY.
+
+This uses the same general logic to perform substitution as the
+study template.  A new buffer will be created with a filename of
+the form \"*Boa Query Preview for QUERY*\", filled and
+substitutions made.  It is shown with `pop-to-buffer'."
+  (interactive (list (completing-read "Query: "
+                                      (boa-sc-outputs-query boa-ide-project-dir
+                                                            boa-ide-file-relative-name)
+                                      nil t)))
+  (let ((orig-buffer (current-buffer))
+        (buffer (generate-new-buffer (format "*Boa Query Preview for %s*" query)))
+        (changedp t)
+        (substitutions-list (boa-sc-snippets-for-query boa-ide-project-dir query))
+        (root-dir boa-ide-project-dir))
+    (with-current-buffer buffer
+      (insert-buffer-substring-no-properties orig-buffer)
+      (goto-char (point-min))
+      (while changedp
+        (setf changedp nil)
+        (dolist (substitution substitutions-list)
+          (save-match-data
+            (cl-destructuring-bind (target type replacement) substitution
+              (goto-char (point-min))
+              (let ((regexp (format "\\(.*\\)\\(%s\\)" (regexp-quote target))))
+                (when (re-search-forward regexp nil t)
+                  (setf changedp t)
+                  (message "Replacing target \"%s\"." target)
+                  (let* ((prefix (match-string 1))
+                         (debug type)
+                         (replacement-string (if (equal type :string)
+                                                 replacement
+                                               (boa-ide-prepare-file-replacement prefix replacement root-dir))))
+                    (replace-match replacement-string nil t nil 2))))))))
+      (boa-mode)
+      (read-only-mode))
+    (pop-to-buffer buffer)))
+
+
 ;;; Completion
 
 (defun boa-ide-complete-snippets ()
@@ -123,6 +185,7 @@
             ("C-c C-r c" boa-ide-run-csv)
             ("C-c C-r a" boa-ide-run-analysis)
             ("C-c C-r C" boa-ide-pop-to-study-config)
+            ("C-c C-r P" boa-ide-preview-query)
             ("C-c C-c" boa-ide-run-any)))
     map)
   "Keymap for Boa IDE Support.")
