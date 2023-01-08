@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.5.1
+;; Version: 1.6.0
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -135,7 +135,22 @@
 
 ;; Autocompletion
 
-;; TODO: Autocomplete Names in Scope
+(defun boa-scan-names ()
+  ;; TODO: Support scope detection
+  "Scan file for names of definitions."
+  (let ((names (list)))
+    (save-mark-and-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward "\\(\\(\\w\\|\\s_\\)+\\)\\s-*:"
+                                  ;; Capture a string of word items or
+                                  ;; symbol-constitutents, followed by
+                                  ;; zero-or-more spaces and a colon.
+                                  nil t)
+          (let ((string (match-string 1)))
+            (set-text-properties 0 (length string) nil string)
+            (cl-pushnew string names :test #'string=)))))
+    names))
 
 (defun boa-autocomplete-symbol ()
   "Autocompletion provider for `boa-mode'.
@@ -148,7 +163,8 @@ Uses `boa-keywords', `boa-types', and `boa-builtins'."
           symbol-end
           (append boa-keywords
                   boa-types
-                  boa-builtins))))
+                  boa-builtins
+                  (boa-scan-names)))))
 
 
 ;;; Mode definition
