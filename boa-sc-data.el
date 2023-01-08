@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.2.1
+;; Version: 1.2.2
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -95,11 +95,12 @@
 
 (defun boa-sc-get-project-dir ()
   "Get the full name of the project directory."
-  (let ((project-dir (locate-dominating-file              ; More general than previous `project-current' call (does not need to fit definition of "project")
-                      (buffer-file-name (current-buffer)) "study-config.json")))
-    (when project-dir
-      (expand-file-name                     ; File name should be expanded (i.e., no shortcuts like ~) so that there aren't hash misses
-       project-dir))))
+  (when (buffer-file-name (current-buffer))
+    (let ((project-dir (locate-dominating-file              ; More general than previous `project-current' call (does not need to fit definition of "project")
+                        (buffer-file-name (current-buffer)) "study-config.json")))
+      (when project-dir
+        (expand-file-name                     ; File name should be expanded (i.e., no shortcuts like ~) so that there aren't hash misses
+         project-dir)))))
 
 (defun boa-sc-get-or-read-project (prompt)
   "PROMPT for a known boa-sc project."
