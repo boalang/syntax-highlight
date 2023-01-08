@@ -1,7 +1,7 @@
 ;;; boa-ide.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.3.0
+;; Version: 2.3.1
 ;; Package-Requires: ((boa-sc-data "1.2.3") (boa-mode "1.4.4"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -45,20 +45,18 @@
 
 (defun boa-ide-run-query (query)
   "Run the Boa query QUERY."
-  (interactive (list (completing-read "Query: "
-                                      (mapcar (apply-partially 'format "data/txt/%s")
-                                              (boa-sc-outputs-query boa-ide-project-dir
-                                                                    boa-ide-file-relative-name))
-                                      nil t)))
+  (interactive (list (format "data/txt/%s" (completing-read "Query: "
+                                                            (boa-sc-outputs-query boa-ide-project-dir
+                                                                                  boa-ide-file-relative-name)
+                                                            nil t))))
   (boa-sc-compile boa-ide-project-dir query))
 
 (defun boa-ide-run-csv (csv)
   "Generate csv file CSV."
-  (interactive (list (completing-read "CSV: "
-                                      (mapcar (apply-partially 'format "data/csv/%s")
-                                              (boa-sc-csv-query boa-ide-project-dir
-                                                                boa-ide-file-relative-name))
-                                      nil t)))
+  (interactive (list (format "data/csv/%s" (completing-read "CSV: "
+                                                            (boa-sc-csv-query boa-ide-project-dir
+                                                                              boa-ide-file-relative-name)
+                                                            nil t))))
   (boa-sc-compile boa-ide-project-dir csv))
 
 (defun boa-ide-run-analysis (analysis)
