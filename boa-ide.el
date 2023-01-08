@@ -132,7 +132,8 @@
   :lighter nil
   :interactive (list 'boa-mode)
   :keymap boa-ide-mode-map
-  (when boa-ide-mode
+  (when (and boa-ide-mode
+             (boa-sc-get-project-dir))
     (setq-local boa-ide-project-dir (boa-sc-get-project-dir))
     (setq-local boa-ide-file-relative-name
                 (file-relative-name (buffer-file-name)
