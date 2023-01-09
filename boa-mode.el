@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.6.0
+;; Version: 1.6.1
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -223,8 +223,10 @@ scope and name resolution is not supported."
           tab-width 4
           c-basic-offset 4
           indent-tabs-mode nil)
-    (c-set-offset 'label 0)
-    (c-set-offset 'substatement-label 0)
+    (c-set-offset 'label '+)
+    (c-set-offset 'substatement-label '+)
+    (c-set-offset 'case-lable '+)
+    (c-set-offset 'access-label '+)
     (c-set-offset 'case-label 0)
     (c-set-offset 'access-label 0)
     (c-run-mode-hooks 'c-mode-common-hook)
