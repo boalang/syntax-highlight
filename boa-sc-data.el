@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.2.3
+;; Version: 1.2.4
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -131,8 +131,10 @@
                  (cl-pushnew key outputs :test #'string=)
                  (when-let ((processors (gethash "processors" value)))
                    (maphash #'(lambda (key processor)
-                                (when-let ((output (gethash "output" processor)))
-                                  (cl-pushnew (substring output 9) outputs :test #'string=)))
+                                (if (hash-table-p processor)
+                                    (when-let ((output (gethash "output" processor)))
+                                      (cl-pushnew (substring output 9) outputs :test #'string=))
+                                  (cl-pushnew (substring processor 4) outputs :test #'string=)))
                             processors)))
              (gethash "queries" (boa-sc-get-data project)))
     outputs))
@@ -143,10 +145,12 @@
     (maphash #'(lambda (key output)
                  (when-let ((processors (gethash "processors" output)))
                    (maphash #'(lambda (key processor)
-                                (when-let ((csv (gethash "csv" processor)))
-                                  (if (stringp csv)
-                                      (cl-pushnew csv csvs :test #'string=)
-                                    (cl-pushnew (gethash "output" csv) csvs :test #'string=))))
+                                (if (hash-table-p processor)
+                                    (when-let ((csv (gethash "csv" processor)))
+                                      (if (stringp csv)
+                                          (cl-pushnew csv csvs :test #'string=)
+                                        (cl-pushnew (gethash "output" csv) csvs :test #'string=)))
+                                  (cl-pushnew processor csvs :test #'string=)))
                             processors))
                  (when-let ((csv (gethash "csv" output)))
                    (if (stringp csv)
