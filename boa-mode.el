@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.0.0
+;; Version: 2.1.0
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -138,6 +138,9 @@
 
 ;; Autocompletion
 
+(defvar boa-symbol-regex (rx (+ (or (syntax word) (syntax symbol))))
+  "Syntax for Boa symbols.")
+
 (defun boa-scan-names ()
   ;; TODO: Support scope detection
   "Scan file for names of definitions."
@@ -145,13 +148,12 @@
     (save-mark-and-excursion
       (save-match-data
         (goto-char (point-min))
-        (while (re-search-forward "\\(\\(\\w\\|\\s_\\)+\\)\\s-*:"
-                                  ;; Capture a string of word items or
-                                  ;; symbol-constitutents, followed by
-                                  ;; zero-or-more spaces and a colon.
+        (while (re-search-forward (rx (seq (group-n 1 (regex boa-symbol-regex))
+                                           (* (syntax whitespace)) ":"))
                                   nil t)
           (cl-pushnew (match-string-no-properties 1) names :test #'string=))))
     names))
+
 
 (defun boa-scan-type-names ()
   "Scan buffer for names of types."
@@ -159,7 +161,10 @@
     (save-mark-and-excursion
       (save-match-data
         (goto-char (point-min))
-        (while (re-search-forward "type\\s-*\\(\\(\\w\\|\\s_\\)+\\)\\s-*=" nil t)
+        (while (re-search-forward (rx (seq "type" (* (syntax whitespace))
+                                           (group-n 1 (regex boa-symbol-regex))
+                                           (* (syntax whitespace)) "="))
+                                  nil t)
           (cl-pushnew (match-string-no-properties 1) names :test #'string=))))
     names))
 
@@ -228,9 +233,19 @@ In addition to basic `c-mode' mode line configuration, if
 ;; menu-title regexp index function arguments
 
 (defvar boa-generic-expression-imenu
-  '(("Functions" "\\(^\\(\\w\\|\\s_\\)+\\)\\s-*:=\\s-*function" 1)
-    ("Types" "type\\s-*\\(\\(\\w\\|\\s_\\)+\\)\\s-*=" 1)
-    ("Outputs" "\\(^\\(\\w\\|\\s_\\)+\\)\\s-*:\\s-*output" 1))
+  `(("Functions" ,(rx (seq bol (* (syntax whitespace))
+                           (group-n 1 (regex boa-symbol-regex))
+                           (* (syntax whitespace)) ":=" (* (syntax whitespace))
+                           "function"))
+     1)
+    ("Types" ,(rx (seq bol (* (syntax whitespace)) "type" (* (syntax whitespace))
+                       (group-n 1 (regex boa-symbol-regex))
+                       (* (syntax whitespace)) "="))
+     1)
+    ("Outputs" ,(rx (seq bol (* (syntax whitespace))
+                         (group-n 1 (regex boa-symbol-regex))
+                         (* (syntax whitespace)) ":" (* (syntax whitespace)) "output"))
+     1))
   "Generic Expression for Boa Functions.
 
 See also `imenu-generic-expression'.")
