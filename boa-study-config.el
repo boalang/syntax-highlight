@@ -241,10 +241,10 @@ integration with `find-file-at-point'.
     (add-hook 'after-save-hook #'boa-study-config-reparse -100 t)
     (setq-local tab-width 2
                 js-indent-level 2
-                indent-tabs-mode nil)
-    (setq-local boa-study-config-project-dir (boa-sc-get-project-dir))
-    (setq-local ffap-alist (cons '(json-mode . boa-study-config-ffap-file) ffap-alist))
-    (setq-local completion-at-point-functions (cons 'boa-study-config-completion-at-point completion-at-point-functions))))
+                indent-tabs-mode nil
+                boa-study-config-project-dir (boa-sc-get-project-dir)
+                ffap-alist (cons '(json-mode . boa-study-config-ffap-file) ffap-alist)
+                completion-at-point-functions (cons 'boa-study-config-completion-at-point completion-at-point-functions))))
 
 (provide 'boa-study-config)
 
