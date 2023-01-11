@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 1.6.1
+;; Version: 2.0.0
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -27,8 +27,11 @@
 ;; This package provides basic language support for Boa
 ;; (https://boa.cs.iastate.edu).  More features are coming.
 
-(require 'cc-langs)
 (require 'cc-mode)
+(require 'cc-langs)
+(require 'cc-cmds)
+(require 'cc-styles)
+(require 'easymenu)
 (require 'cl-lib)
 
 ;;; Code:
@@ -147,9 +150,17 @@
                                   ;; symbol-constitutents, followed by
                                   ;; zero-or-more spaces and a colon.
                                   nil t)
-          (let ((string (match-string 1)))
-            (set-text-properties 0 (length string) nil string)
-            (cl-pushnew string names :test #'string=)))))
+          (cl-pushnew (match-string-no-properties 1) names :test #'string=))))
+    names))
+
+(defun boa-scan-type-names ()
+  "Scan buffer for names of types."
+  (let ((names (list)))
+    (save-mark-and-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward "type\\s-*\\(\\(\\w\\|\\s_\\)+\\)\\s-*=" nil t)
+          (cl-pushnew (match-string-no-properties 1) names :test #'string=))))
     names))
 
 (defun boa-autocomplete-symbol ()
@@ -164,7 +175,8 @@ Uses `boa-keywords', `boa-types', and `boa-builtins'."
           (append boa-keywords
                   boa-types
                   boa-builtins
-                  (boa-scan-names)))))
+                  (boa-scan-names)
+                  (boa-scan-type-names)))))
 
 
 ;;; Mode definition
@@ -207,16 +219,42 @@ In addition to basic `c-mode' mode line configuration, if
     map)
   "Keymap for Boa Mode.")
 
+(put 'boa-mode 'c-mode-prefix "boa-")
+(c-add-language 'boa-mode 'c-mode)
+
+(easy-menu-define boa-menu boa-mode-map "Boa Mode Commands"
+  (cons "Boa" (c-lang-const c-mode-menu boa)))
+
+;; menu-title regexp index function arguments
+
+(defvar boa-generic-expression-imenu
+  '(("Functions" "\\(^\\(\\w\\|\\s_\\)+\\)\\s-*:=\\s-*function" 1)
+    ("Types" "type\\s-*\\(\\(\\w\\|\\s_\\)+\\)\\s-*=" 1)
+    ("Outputs" "\\(^\\(\\w\\|\\s_\\)+\\)\\s-*:\\s-*output" 1))
+  "Generic Expression for Boa Functions.
+
+See also `imenu-generic-expression'.")
+
 ;;;###autoload
-(define-derived-mode boa-mode c-mode "Boa"
+(define-derived-mode boa-mode prog-mode "Boa"
   "Boa Mode is a major mode for editing Boa language files.
 
 Basic support is provided by `c-mode', with additional
 font-locking and completion for the Boa language.  At present,
-scope and name resolution is not supported."
+scope and name resolution is not supported.
+
+The hook `c-mode-common-hook' is run without args, then
+`boa-mode-hook'.
+
+Key bindings:
+\\{boa-mode-map}}"
   :syntax-table boa-mode-syntax-table
   :abbrev-table boa-mode-abbrev-table
+  :after-hook (c-update-modeline)
   (progn
+    (c-initialize-cc-mode t)
+    (c-init-language-vars boa-mode)
+    (c-common-init 'boa-mode)
     (setq comment-start "# "
           comment-end ""
           font-lock-defaults boa-mode-font-lock-keywords
@@ -225,10 +263,11 @@ scope and name resolution is not supported."
           indent-tabs-mode nil)
     (c-set-offset 'label '+)
     (c-set-offset 'substatement-label '+)
-    (c-set-offset 'case-lable '+)
+    (c-set-offset 'case-label '+)
     (c-set-offset 'access-label '+)
     (c-set-offset 'case-label 0)
     (c-set-offset 'access-label 0)
+    (cc-imenu-init boa-generic-expression-imenu)
     (c-run-mode-hooks 'c-mode-common-hook)
     (setq-local completion-at-point-functions (cons 'boa-autocomplete-symbol completion-at-point-functions))))
 
