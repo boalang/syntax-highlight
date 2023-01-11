@@ -1,7 +1,7 @@
 ;;; boa-mode.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.1.0
+;; Version: 2.2.0
 ;; Package-Requires: ((cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -191,7 +191,7 @@ Uses `boa-keywords', `boa-types', and `boa-builtins'."
 In addition to basic `c-mode' mode line configuration, if
 `boa-ide-mode' is enabled, modify the lighter (show \"(IDE)\")."
   (if (derived-mode-p 'boa-mode)
-      (let ((fmt (format "/%s%s%s%s%s%s"
+      (let ((fmt (format "/%s%s%s%s%s%s%s"
 		         (if c-block-comment-flag "*" "/")
 		         (if c-electric-flag "l" "")
 		         (if (and c-electric-flag c-auto-newline)
@@ -205,6 +205,7 @@ In addition to basic `c-mode' mode line configuration, if
                              ;; own lighter!
 			     "w"
 		           "")
+                         (if (bound-and-true-p boa-doc-mode) "d" "")
                          (if (bound-and-true-p boa-ide-mode)
                              "(IDE)" "")))
             (bare-mode-name (if (string-match "\\(^[^/]*\\)/" mode-name)
