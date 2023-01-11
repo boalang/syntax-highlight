@@ -25,3 +25,9 @@ modules.  Place the `*.el` files somewhere on your `load-path` and
    and `boa-study-config` to access and interact with [study
    template](https://github.com/boalang/study-template) based
    projects.
+
+## a2ps
+
+[a2ps](https://www.gnu.org/software/a2ps) is a program which can
+highlight code for hard-copy printing.  The file `boa.ssh` provides
+support for this, and may be installed in `~/.a2ps/` for use.
