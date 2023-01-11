@@ -1,8 +1,8 @@
 ;;; boa-doc.el --- Eldoc support for the Boa language  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 3.0.0
-;; Package-Requires: ((boa-mode "1.4.3") (cc-mode "5.33.1"))
+;; Version: 4.0.0
+;; Package-Requires: ((boa-mode "2.1.0") (cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -549,21 +549,33 @@ t, show full documentation."
     (save-mark-and-excursion
       (save-match-data
         (goto-char (point-min))
-        (while (re-search-forward "\\(\\(\\w\\|\\s_\\)+\\)\\s-*:=\\s-*function\\s-*(\\(.*\\))\\s-*\\(:\\s-*.*\\)?\\s-*{"
+        (while (re-search-forward (rx (seq bol (* (syntax whitespace))
+                                           (group-n 1 (regex boa-symbol-regex))
+                                           (* (syntax whitespace)) ":=" (* (syntax whitespace))
+                                           "function" (* (syntax whitespace)) "("
+                                           (group-n 2 (* any))
+                                           ")" (* (syntax whitespace))
+                                           (? (seq (* (syntax whitespace))
+                                                   ":"
+                                                   (* (syntax whitespace))
+                                                   (group-n 3 (* any))))
+                                           (* (syntax whitespace))
+                                           "{"))
                                   nil t)
           (let ((name (match-string-no-properties 1))
-                (arguments (when-let* ((arguments-string (match-string-no-properties 3))
-                                       (arguments (split-string arguments-string ",\\s-*")))
+                (arguments (when-let* ((arguments-string (match-string-no-properties 2))
+                                       (arguments (split-string arguments-string (rx (seq "," (* (syntax whitespace)))))))
                              (mapcar #'(lambda (argument)
                                          (save-match-data
-                                           (when (string-match "\\(\\(\\w\\|\\s_\\)+\\)\\s-*:\\s-*\\(\\(\\w\\|\\s_\\|\\s-\\)+\\)" argument)
+                                           (when (string-match
+                                                  (rx (seq (group-n 1 (regex boa-symbol-regex))
+                                                           (* (syntax whitespace)) ":" (* (syntax whitespace))
+                                                           (group-n 2 (* any))))
+                                                  argument)
                                              (make-boa-doc-argument :name (match-string-no-properties 1 argument)
-                                                                    :type (match-string-no-properties 3 argument)))))
+                                                                    :type (match-string-no-properties 2 argument)))))
                                      arguments)))
-                (return-type (when-let ((return-type-string (match-string-no-properties 4)))
-                               (save-match-data
-                                 (string-match ":\\s-*\\(\\(\\w\\|\\s_\\|\\s-\\)+\\)" return-type-string)
-                                 (match-string-no-properties 1 return-type-string)))))
+                (return-type (match-string-no-properties 3)))
             (set (intern (upcase name) local-doc-table)
                  (make-boa-doc-function-data :name name
                                              :arguments arguments
