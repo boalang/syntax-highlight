@@ -1,8 +1,8 @@
 ;;; boa-ide.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.4.0
-;; Package-Requires: ((boa-sc-data "1.2.3") (boa-mode "1.4.4"))
+;; Version: 3.0.0
+;; Package-Requires: ((boa-sc-data "2.0.0") (boa-mode "1.4.4"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -96,26 +96,29 @@
 
 ;;; Preview queries.
 
-(defun boa-ide-prepare-file-replacement (prefix file root)
-  "Prepare FILE (relative to ROOT) for use as replacement, using PREFIX.
+(defun boa-ide-prepare-replacement (prefix root replacement)
+  "Prepare REPLACEMENT given PREFIX and ROOT.
 
 PREFIX is checked to ensure that it is only whitespace.  If so,
-it is retained, otherwise, no prefix is used."
+it is retained, otherwise, no prefix is used.
+
+If REPLACEMENT refers to a file, the file is opened relative to
+ROOT, and used."
   (let ((prefix (save-match-data
-                  (if (or (string-match (rx (not (syntax whitespace))) prefix)
-                          (string-empty-p prefix))
-                      nil
-                    prefix)))
-        (file-name  (expand-file-name file (expand-file-name "boa/snippets" root))))
+                  (unless (or (string-empty-p prefix)
+                              (string-match (rx (not (syntax whitespace))) prefix))
+                    prefix))))
     (save-match-data
       (with-temp-buffer
-        (insert-file file-name)
+        (if (equal :string (boa-sc-substitution-type replacement))
+            (insert (boa-sc-substitution-replacement replacement))
+          (insert-file (expand-file-name (boa-sc-substitution-replacement replacement) (expand-file-name "boa/snippets" root))))
         (goto-char (point-min))
         (when prefix
           (while (progn (forward-line) (not (looking-at "^$")))
             (beginning-of-line)
             (insert prefix)))
-        (buffer-string)))))
+        (buffer-substring-no-properties (point-min) (point-max))))))
 
 (defun boa-ide-preview-query (query)
   "Produce a preview of QUERY.
@@ -131,7 +134,7 @@ substitutions made.  It is shown with `pop-to-buffer'."
   (let ((orig-buffer (current-buffer))
         (buffer (generate-new-buffer (format "*Boa Query Preview for %s*" query)))
         (changedp t)
-        (substitutions-list (boa-sc-snippets-for-query boa-ide-project-dir query))
+        (substitutions-list (boa-sc-snippets-query boa-ide-project-dir query))
         (root-dir boa-ide-project-dir))
     (with-current-buffer buffer
       (insert-buffer-substring-no-properties orig-buffer)
@@ -140,19 +143,16 @@ substitutions made.  It is shown with `pop-to-buffer'."
         (setf changedp nil)
         (dolist (substitution substitutions-list)
           (save-match-data
-            (cl-destructuring-bind (target type replacement) substitution
-              (goto-char (point-min))
-              (when (re-search-forward (rx (seq (group-n 1 (* any))
-                                                (group-n 2 (literal target))))
-                                       nil t)
-                (setf changedp t)
-                (message "Replacing target \"%s\"." target)
-                (let* ((prefix (match-string 1))
-                       (debug type)
-                       (replacement-string (if (equal type :string)
-                                               replacement
-                                             (boa-ide-prepare-file-replacement prefix replacement root-dir))))
-                  (replace-match replacement-string nil t nil 2)))))))
+            (goto-char (point-min))
+            (when (re-search-forward (rx (seq (group-n 1 (* any))
+                                              (group-n 2 (literal (boa-sc-substitution-target substitution)))))
+                                     nil t)
+              (setf changedp t)
+              (message "Replacing target \"%s\"." (boa-sc-substitution-target substitution))
+              (let ((replacement-string(boa-ide-prepare-replacement (match-string 1) root-dir substitution)))
+                (replace-match replacement-string nil t nil 2)
+                (message "Replacement made."))))))
+      (message "Substitutions complete.  Enabling `boa-mode'.")
       (boa-mode)
       (read-only-mode))
     (pop-to-buffer buffer)))
