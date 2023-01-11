@@ -45,41 +45,47 @@
 
 (defun boa-ide-run-query (query)
   "Run the Boa query QUERY."
-  (interactive (list (format "data/txt/%s" (completing-read "Query: "
-                                                            (boa-sc-outputs-query boa-ide-project-dir
-                                                                                  boa-ide-file-relative-name)
-                                                            nil t))))
+  (interactive (list
+                (format "data/txt/%s"
+                        (completing-read "Query: "
+                                         (boa-sc-outputs-query boa-ide-project-dir
+                                                               boa-ide-file-relative-name)
+                                         nil t))))
   (boa-sc-compile boa-ide-project-dir query))
 
 (defun boa-ide-run-csv (csv)
   "Generate csv file CSV."
-  (interactive (list (format "data/csv/%s" (completing-read "CSV: "
-                                                            (boa-sc-csv-query boa-ide-project-dir
-                                                                              boa-ide-file-relative-name)
-                                                            nil t))))
+  (interactive (list
+                (format "data/csv/%s"
+                        (completing-read "CSV: "
+                                         (boa-sc-csv-query boa-ide-project-dir
+                                                           boa-ide-file-relative-name)
+                                         nil t))))
   (boa-sc-compile boa-ide-project-dir csv))
 
 (defun boa-ide-run-analysis (analysis)
   "Run the analysis ANALYSIS."
-  (interactive (list (completing-read "Analysis: "
-                                      (boa-sc-analyses-query boa-ide-project-dir
-                                                             boa-ide-file-relative-name)
-                                      nil t)))
+  (interactive (list
+                (completing-read "Analysis: "
+                                 (boa-sc-analyses-query boa-ide-project-dir
+                                                        boa-ide-file-relative-name)
+                                 nil t)))
   (boa-sc-compile boa-ide-project-dir analysis))
 
 (defun boa-ide-run-any (target)
   "Run TARGET."
-  (interactive (list (completing-read "Target: "
-                                      (append
-                                       (mapcar (apply-partially 'format "data/txt/%s")
-                                               (boa-sc-outputs-query boa-ide-project-dir
-                                                                     boa-ide-file-relative-name))
-                                       (mapcar (apply-partially 'format "data/csv/%s")
-                                               (boa-sc-csv-query boa-ide-project-dir
-                                                                 boa-ide-file-relative-name))
-                                       (boa-sc-analyses-query boa-ide-project-dir
-                                                              boa-ide-file-relative-name))
-                                      nil t)))
+  (interactive (list
+                (completing-read "Target: "
+                                 (append
+                                  (mapcar (apply-partially 'format "data/txt/%s")
+                                          (boa-sc-outputs-query boa-ide-project-dir
+                                                                boa-ide-file-relative-name))
+                                  (mapcar (apply-partially 'format "data/csv/%s")
+                                          (boa-sc-csv-query boa-ide-project-dir
+                                                            boa-ide-file-relative-name))
+                                  (boa-sc-analyses-query boa-ide-project-dir
+                                                         boa-ide-file-relative-name))
+                                 nil t)))
   (boa-sc-compile boa-ide-project-dir target))
 
 (defun boa-ide-pop-to-study-config ()
