@@ -1,7 +1,7 @@
 ;;; boa-ide.el --- Mode for boa language files  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.3.1
+;; Version: 2.4.0
 ;; Package-Requires: ((boa-sc-data "1.2.3") (boa-mode "1.4.4"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -96,7 +96,8 @@
 PREFIX is checked to ensure that it is only whitespace.  If so,
 it is retained, otherwise, no prefix is used."
   (let ((prefix (save-match-data
-                  (if (string-match "\\S-" prefix)
+                  (if (or (string-match (rx (not (syntax whitespace))) prefix)
+                          (string-empty-p prefix))
                       nil
                     prefix)))
         (file-name  (expand-file-name file (expand-file-name "boa/snippets" root))))
@@ -135,16 +136,17 @@ substitutions made.  It is shown with `pop-to-buffer'."
           (save-match-data
             (cl-destructuring-bind (target type replacement) substitution
               (goto-char (point-min))
-              (let ((regexp (format "\\(.*\\)\\(%s\\)" (regexp-quote target))))
-                (when (re-search-forward regexp nil t)
-                  (setf changedp t)
-                  (message "Replacing target \"%s\"." target)
-                  (let* ((prefix (match-string 1))
-                         (debug type)
-                         (replacement-string (if (equal type :string)
-                                                 replacement
-                                               (boa-ide-prepare-file-replacement prefix replacement root-dir))))
-                    (replace-match replacement-string nil t nil 2))))))))
+              (when (re-search-forward (rx (seq (group-n 1 (* any))
+                                                (group-n 2 (literal target))))
+                                       nil t)
+                (setf changedp t)
+                (message "Replacing target \"%s\"." target)
+                (let* ((prefix (match-string 1))
+                       (debug type)
+                       (replacement-string (if (equal type :string)
+                                               replacement
+                                             (boa-ide-prepare-file-replacement prefix replacement root-dir))))
+                  (replace-match replacement-string nil t nil 2)))))))
       (boa-mode)
       (read-only-mode))
     (pop-to-buffer buffer)))
