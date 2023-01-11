@@ -1,7 +1,7 @@
 ;;; boa-doc.el --- Eldoc support for the Boa language  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.1.0
+;; Version: 3.0.0
 ;; Package-Requires: ((boa-mode "1.4.3") (cc-mode "5.33.1"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -542,9 +542,40 @@ t, show full documentation."
                      (match-beginning 0) (match-end 0))
                     argument-index))))))))
 
+(defun boa-doc-scan-local-functions (&optional function-name)
+  "Scan for definition of local FUNCTION-NAME."
+  (interactive)
+  (let ((local-doc-table (obarray-make)))
+    (save-mark-and-excursion
+      (save-match-data
+        (goto-char (point-min))
+        (while (re-search-forward "\\(\\(\\w\\|\\s_\\)+\\)\\s-*:=\\s-*function\\s-*(\\(.*\\))\\s-*\\(:\\s-*.*\\)?\\s-*{"
+                                  nil t)
+          (let ((name (match-string-no-properties 1))
+                (arguments (when-let* ((arguments-string (match-string-no-properties 3))
+                                       (arguments (split-string arguments-string ",\\s-*")))
+                             (mapcar #'(lambda (argument)
+                                         (save-match-data
+                                           (when (string-match "\\(\\(\\w\\|\\s_\\)+\\)\\s-*:\\s-*\\(\\(\\w\\|\\s_\\|\\s-\\)+\\)" argument)
+                                             (make-boa-doc-argument :name (match-string-no-properties 1 argument)
+                                                                    :type (match-string-no-properties 3 argument)))))
+                                     arguments)))
+                (return-type (when-let ((return-type-string (match-string-no-properties 4)))
+                               (save-match-data
+                                 (string-match ":\\s-*\\(\\(\\w\\|\\s_\\|\\s-\\)+\\)" return-type-string)
+                                 (match-string-no-properties 1 return-type-string)))))
+            (set (intern (upcase name) local-doc-table)
+                 (make-boa-doc-function-data :name name
+                                             :arguments arguments
+                                             :return-type return-type
+                                             :documentation (format "User defined function starting on line %d."
+                                                                    (line-number-at-pos (match-beginning 0)))))))))
+    (symbol-value (intern-soft (upcase function-name) local-doc-table))))
+
 (defun boa-doc-format-info (function-name arg-index)
   "Format documentation for FUNCTION-NAME, given current ARG-INDEX."
-  (when-let ((doc-object (symbol-value (intern-soft (upcase function-name) boa-doc-documentation-table))))
+  (when-let ((doc-object (or (symbol-value (intern-soft (upcase function-name) boa-doc-documentation-table))
+                             (boa-doc-scan-local-functions function-name))))
     (format "(%s)%s%s"
             (let* ((arguments (boa-doc-function-data-arguments doc-object))
                    (num-args (length arguments))
