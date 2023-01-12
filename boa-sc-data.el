@@ -1,7 +1,7 @@
 ;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.0.0
+;; Version: 2.0.1
 ;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
@@ -131,11 +131,14 @@ Slots are:
 
 (defun boa-sc-convert-processor (name map)
   "Convert MAP with NAME to a `boa-sc-processor'."
-  (make-boa-sc-processor :script-file name
-                         :output-file (gethash "output" map)
-                         :csv-output (when-let ((csv-object (gethash "csv" map)))
-                                       (boa-sc-convert-csv csv-object))
-                         :cache-clean (gethash "cacheclean" map)))
+  (if (stringp map)
+      (make-boa-sc-processor :script-file name
+                             :output-file map)
+    (make-boa-sc-processor :script-file name
+                           :output-file (gethash "output" map)
+                           :csv-output (when-let ((csv-object (gethash "csv" map)))
+                                         (boa-sc-convert-csv csv-object))
+                           :cache-clean (gethash "cacheclean" map))))
 
 (defun boa-sc-convert-query (name map)
   "Convert the query MAP with NAME to a `boa-sc-query'."
