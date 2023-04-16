@@ -1,0 +1,133 @@
+<lexer>
+  <config>
+    <name>Boa</name>
+    <alias>boa</alias>
+    <filename>*.boa</filename>
+    <mime_type>text/boa</mime_type>
+  </config>
+  <rules>
+    <state name="root">
+      <rule>
+        <include state="comments"/>
+      </rule>
+      <rule>
+        <include state="consts"/>
+      </rule>
+      <rule>
+        <include state="keywords"/>
+      </rule>
+      <rule>
+        <include state="templates"/>
+      </rule>
+      <rule>
+        <include state="types"/>
+      </rule>
+      <rule>
+        <include state="functions"/>
+      </rule>
+      <rule>
+        <include state="strings"/>
+      </rule>
+      <rule pattern=".">
+        <token type="Text"/>
+      </rule>
+    </state>
+    <state name="comments">
+      <rule pattern="#.*$">
+        <token type="CommentSingle"/>
+      </rule>
+    </state>
+    <state name="consts">
+      <rule pattern="\b(input|true|false|PI|Inf|inf|NaN|nan|SECOND|SEC|MINUTE|MIN|HOUR|HR)\b">
+        <token type="KeywordConstant"/>
+      </rule>
+      <rule pattern="[1-9]\d*">
+        <token type="LiteralNumberInteger"/>
+      </rule>
+      <rule pattern="[+-]?\d+(?:(?:\.\d*)?(?:[eE][+-]?\d+)?)?">
+        <token type="LiteralNumberFloat"/>
+      </rule>
+      <rule pattern="0x[0-9a-fA-F]+">
+        <token type="LiteralNumberHex"/>
+      </rule>
+    </state>
+    <state name="keywords">
+      <rule pattern="\b(\+\+|\-\-|\|\||\-&gt;|\?|\+|\-|\*|\/|:=|:|\$|%|\||\^|~|&lt;&lt;|&gt;&gt;|==|=|!=|&lt;=|&gt;=|&lt;|&gt;|&amp;&amp;|&amp;|!)\b">
+        <token type="Operator"/>
+      </rule>
+      <rule pattern="\b(output|visit|traverse|current|function|weight|of|before|after|case|default|_|type)\b">
+        <token type="KeywordReserved"/>
+      </rule>
+      <rule pattern="\b(if|else|while|for|foreach|exists|ifall|switch|return|break|stop|continue)\b">
+        <token type="Keyword"/>
+      </rule>
+    </state>
+    <state name="templates">
+      <rule pattern="{@[^@]+@}">
+        <token type="LiteralStringInterpol"/>
+      </rule>
+    </state>
+    <state name="types">
+      <rule pattern="\b(Project|CodeRepository|Revision|ChangedFile|ASTRoot|Namespace|Declaration|Type|Method|Statement|Expression|Variable|Modifier|Person|CFG|CDG|DDG|PDG|CFGNode|CDGNode|DDGNode|PDGNode|CFGEdge|CDGEdge|DDGEdge|PDGEdge)\b">
+        <token type="NameBuiltin"/>
+      </rule>
+      <rule pattern="\b(ForgeKind|RepositoryKind|FileKind|ChangeKind|TypeKind|StatementKind|ExpressionKind|Visibility|ModifierKind|Scope|TraversalKind|TraversalDirection|NodeType|EdgeType|EdgeLabel)(\.[A-Z_0-9]+)?\b">
+        <token type="NameBuiltin"/>
+      </rule>
+      <rule pattern="\b(visitor|traversal|fixp|string|bool|byte|fingerprint|int|float|time|enum|stack|map|set|array|queue)\b">
+        <token type="KeywordType"/>
+      </rule>
+    </state>
+    <state name="functions">
+      <rule pattern="\b(hash|clear|remove|clone|add|poll|offer|peek|push|pop|abs|def|new|regex|split|splitn|haskey|contains|containsall|values|keys|len|lookup|max|min|sort|sortx|convert|addday|addmonth|addweek|addyear|dayofmonth|dayofweek|dayofyear|hourof|minuteof|monthof|secondof|yearof|trunctoday|trunctohour|trunctominute|trunctomonth|trunctosecond|trunctoyear|now|formattime|lowercase|uppercase|strfind|strrfind|substring|strreplace|match|matchposns|matchstrs|format|highbit|rand|nrand|log|log10|exp|sqrt|pow|sin|cos|tan|asin|acos|atan|atan2|cosh|sinh|tanh|acosh|asinh|atanh|ceil|floor|round|trunc|isnan|isinf|isfinite|isnormal|difference|union|intersect|symdiff)\b\s*(?=\()">
+        <token type="Keyword"/>
+      </rule>
+      <rule pattern="\b(gettotalnodes|gettotalcontrolnodes|gettotaledges|getpdtree|getcfgslice|getpdgslice|parse|parseexpression|dot|getvalue|getcfg|getcdg|getddg|getpdg|getinedge|getoutedge|getast|getastcount|ast_len|getsnapshot|hasfiletype|isfixingrevision|iskind|isliteral|getnoargsvariables|converttosymbolicname|assignlatestvalue|normalize|reduce|nnf|simplify|cnf|dnf|prettyprint|has_visibility|has_modifier|has_modifier_final|has_modifier_namespace|has_modifier_private|has_modifier_protected|has_modifier_public|has_modifier_static|has_modifier_synchronized|has_annotation|get_annotation|getrevisionscount|getrevision)\b\s*(?=\()">
+        <token type="Keyword"/>
+      </rule>
+      <rule pattern="\b(collection|sum|top|bottom|mean|maximum|minimum|unique|set|quantile|histogram|text)\b">
+        <token type="KeywordType"/>
+      </rule>
+    </state>
+    <state name="strings">
+      <rule pattern="&#34;">
+        <token type="LiteralStringDouble"/>
+        <push state="stringdouble"/>
+      </rule>
+      <rule pattern="`">
+        <token type="LiteralStringBacktick"/>
+        <push state="backtick"/>
+      </rule>
+    </state>
+    <state name="stringdouble">
+      <rule pattern="&#34;">
+        <token type="LiteralStringDouble"/>
+        <pop depth="1"/>
+      </rule>
+    </state>
+    <state name="backtick">
+      <rule pattern="`">
+        <token type="LiteralStringBacktick"/>
+        <pop depth="1"/>
+      </rule>
+    </state>
+    <state name="string">
+      <rule pattern="&#34;">
+        <token type="LiteralStringDouble"/>
+        <pop depth="1"/>
+      </rule>
+      <rule pattern="(?s)(\\\\|\\[0-7]+|\\.|[^&#34;\\$])+">
+        <token type="LiteralStringDouble"/>
+      </rule>
+    </state>
+    <state name="backticks">
+      <rule pattern="`">
+        <token type="LiteralStringBacktick"/>
+        <pop depth="1"/>
+      </rule>
+      <rule>
+        <include state="root"/>
+      </rule>
+    </state>
+  </rules>
+</lexer>
