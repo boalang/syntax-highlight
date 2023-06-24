@@ -222,8 +222,10 @@ Slots are:
 
 (defun boa-sc-get-study-config-buffer (project)
   "Get the buffer for PROJECT."
-  (if-let ((configuration (gethash project boa-sc-data)))
-      (boa-sc-configuration-buffer configuration)
+  (if-let ((configuration (gethash project boa-sc-data))
+           (buffer (and (buffer-live-p (boa-sc-configuration-buffer configuration))
+                        (boa-sc-configuration-buffer configuration))))
+      buffer
     (save-mark-and-excursion
       (or (find-buffer-visiting (boa-sc-get-study-config-file project))
           (find-file-noselect (boa-sc-get-study-config-file project))))))
@@ -300,14 +302,8 @@ Slots are:
 
 (defun boa-sc-snippets (project)
   "Get known snippets for PROJECT."
-  (let ((snippets (mapcar #'boa-sc-substitution-target
-                          (boa-sc-configuration-substitutions (boa-sc-get-data project)))))
-    (boa-sc-maphash #'(lambda (_ query)
-                        (mapcan #'(lambda (substitution)
-                                    (cl-pushnew (boa-sc-substitution-target substitution) snippets :test #'string=))
-                                (boa-sc-query-substitutions query)))
-                    (boa-sc-configuration-queries (boa-sc-get-data project)))
-    snippets))
+  (mapcar #'boa-sc-substitution-target
+          (boa-sc-configuration-substitutions (boa-sc-get-data project))))
 
 
 ;; Find items from queries (return list of strings)

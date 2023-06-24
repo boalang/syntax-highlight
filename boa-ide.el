@@ -168,9 +168,10 @@ substitutions made.  It is shown with `pop-to-buffer'."
          (line-bounds (bounds-of-thing-at-point 'line))
          (line-start (car line-bounds))
          (line-end (cdr line-bounds))
-         (snippets (mapcar (lambda (str)
-                             (substring str 2 (- (length str) 2)))
-                           (boa-sc-snippets boa-ide-project-dir))))
+         (snippets (cl-remove-duplicates (mapcar (lambda (str)
+                                                   (substring str 2 (- (length str) 2)))
+                                                 (boa-sc-snippets boa-ide-project-dir))
+                                         :test #'string=)))
     (when-let ((new-start (save-excursion
                             (save-match-data
                               (search-backward "{@" line-start t))))
