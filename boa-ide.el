@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 3.0.0
-;; Package-Requires: ((boa-sc-data "2.0.0") (boa-mode "1.4.4"))
+;; Package-Requires: ((emacs "24.4") (boa-sc-data "2.0.0") (boa-mode "1.4.4"))
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -112,7 +112,7 @@ ROOT, and used."
       (with-temp-buffer
         (if (equal :string (boa-sc-substitution-type replacement))
             (insert (boa-sc-substitution-replacement replacement))
-          (insert-file (expand-file-name (boa-sc-substitution-replacement replacement) (expand-file-name "boa/snippets" root))))
+          (insert-file-contents (expand-file-name (boa-sc-substitution-replacement replacement) (expand-file-name "boa/snippets" root))))
         (goto-char (point-min))
         (when prefix
           (while (progn (forward-line) (not (looking-at "^$")))
