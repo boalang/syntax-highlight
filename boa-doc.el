@@ -2,8 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 4.0.0
-;; Package-Requires: ((boa-mode "2.1.0") (cc-mode "5.33.1"))
-;; Keywords: boa, msr, language
+;; Keywords: docs, languges
 ;; URL: https://github.com/boalang/syntax-highlight
 
 
@@ -97,8 +96,8 @@ t, show full documentation."
                                        :type "set of val_type"))
         (t-type (make-boa-doc-argument :name "t"
                                        :type "type")))
-    (mapc #'(lambda (function-doc)
-              (set (intern (upcase (boa-doc-function-data-name function-doc)) table) function-doc))
+    (mapc (lambda (function-doc)
+            (set (intern (upcase (boa-doc-function-data-name function-doc)) table) function-doc))
           (list
            ;; Built-in Functions
            (make-boa-doc-function-data :name "sort"
@@ -519,6 +518,7 @@ t, show full documentation."
   (let* ((literal-limits (c-literal-limits))
          (literal-type (c-literal-type literal-limits))
          (argument-index 0))
+    (ignore argument-index)
     (save-excursion
       ;; if this is a string, move out to function domain
       (when (eq literal-type 'string)
@@ -565,15 +565,15 @@ t, show full documentation."
           (let ((name (match-string-no-properties 1))
                 (arguments (when-let* ((arguments-string (match-string-no-properties 2))
                                        (arguments (split-string arguments-string (rx (seq "," (* (syntax whitespace)))))))
-                             (mapcar #'(lambda (argument)
-                                         (save-match-data
-                                           (when (string-match
-                                                  (rx (seq (group-n 1 (regex boa-symbol-regex))
-                                                           (* (syntax whitespace)) ":" (* (syntax whitespace))
-                                                           (group-n 2 (* any))))
-                                                  argument)
-                                             (make-boa-doc-argument :name (match-string-no-properties 1 argument)
-                                                                    :type (match-string-no-properties 2 argument)))))
+                             (mapcar (lambda (argument)
+                                       (save-match-data
+                                         (when (string-match
+                                                (rx (seq (group-n 1 (regex boa-symbol-regex))
+                                                         (* (syntax whitespace)) ":" (* (syntax whitespace))
+                                                         (group-n 2 (* any))))
+                                                argument)
+                                           (make-boa-doc-argument :name (match-string-no-properties 1 argument)
+                                                                  :type (match-string-no-properties 2 argument)))))
                                      arguments)))
                 (return-type (match-string-no-properties 3)))
             (set (intern (upcase name) local-doc-table)
@@ -618,7 +618,7 @@ t, show full documentation."
                                                            'eldoc-highlight-function-argument
                                                            t arg-string))
                                  arg-string)
-                             (incf i)))
+                             (cl-incf i)))
                          arguments
                          ", "))
             (if (boa-doc-function-data-return-type doc-object)
@@ -648,15 +648,12 @@ formatted with `boa-doc-format-info'."
 (define-minor-mode boa-doc-mode
   "Provide support for eldoc in Boa language files."
   :lighter " BoaDoc"
-  :interactive (list 'boa-mode)
+  :interactive (boa-mode)
   (if boa-doc-mode
       (progn
         (eldoc-mode +1)
-        (add-to-list (make-local-variable 'eldoc-documentation-functions) #'boa-doc-function))
+        (add-to-list (make-local-variable 'eldoc-documentation-functions) 'boa-doc-function))
     (setq-local eldoc-documentation-functions (remove #'boa-doc-function eldoc-documentation-functions))))
-
-;;;###autoload
-(add-hook 'boa-mode-hook #'boa-doc-mode)
 
 (provide 'boa-doc)
 
