@@ -2,8 +2,8 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.2.0
-;; Package-Requires: ((cc-mode "5.33.1"))
-;; Keywords: boa, msr, language
+;; Package-Requires: ((emacs "26.1") (cc-mode "5.33.1"))
+;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 
 
@@ -127,13 +127,12 @@
      (:else (buffer-file-name)))))
   "Location of pre-build snippets for `boa-mode'.")
 
+(declare-function yas-load-directory "yasnippet")
+
 (defun boa-mode-enable-snippets ()
   "Load snippets for Boa mode."
   (add-to-list 'yas-snippet-dirs boa-mode-snippets-dir t)
   (yas-load-directory boa-mode-snippets-dir t))
-
-(with-eval-after-load 'yasnippet
-  (boa-mode-enable-snippets))
 
 
 ;; Autocompletion
@@ -199,7 +198,7 @@ In addition to basic `c-mode' mode line configuration, if
 		         (if c-hungry-delete-key "h" "")
 		         (if (and
 			      ;; (cc-)subword might not be loaded.
-			      (boundp 'c-subword-mode)
+                              (boundp 'c-subword-mode)
 			      (symbol-value 'c-subword-mode))
                              ;; FIXME: subword-mode already comes with its
                              ;; own lighter!
