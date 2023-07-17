@@ -2,8 +2,8 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 3.0.0
-;; Package-Requires: ((boa-sc-data "2.0.0") (boa-mode "1.4.4"))
-;; Keywords: boa, msr, language
+;; Package-Requires: ((boa-sc-data "2.0.0") (boa-mode "1.4.4") cl-lib (emacs "28.1"))
+;; Keywords: language
 ;; URL: https://github.com/boalang/syntax-highlight
 
 
@@ -28,6 +28,7 @@
 ;; (https://github.com/boalang/study-template).
 
 (require 'boa-sc-data)
+(require 'boa-mode)
 (require 'cl-lib)
 
 ;;; Code:
@@ -77,10 +78,10 @@
   (interactive (list
                 (completing-read "Target: "
                                  (append
-                                  (mapcar (apply-partially 'format "data/txt/%s")
+                                  (mapcar (apply-partially #'format "data/txt/%s")
                                           (boa-sc-outputs-query boa-ide-project-dir
                                                                 boa-ide-file-relative-name))
-                                  (mapcar (apply-partially 'format "data/csv/%s")
+                                  (mapcar (apply-partially #'format "data/csv/%s")
                                           (boa-sc-csv-query boa-ide-project-dir
                                                             boa-ide-file-relative-name))
                                   (boa-sc-analyses-query boa-ide-project-dir
@@ -163,8 +164,8 @@ substitutions made.  It is shown with `pop-to-buffer'."
 (defun boa-ide-complete-snippets ()
   "Offer snippet completions."
   (let* ((symbol-bounds (bounds-of-thing-at-point 'symbol))
-         (symbol-start (car symbol-bounds))
-         (symbol-end (cdr symbol-bounds))
+         ;; (symbol-start (car symbol-bounds))
+         ;; (symbol-end (cdr symbol-bounds))
          (line-bounds (bounds-of-thing-at-point 'line))
          (line-start (car line-bounds))
          (line-end (cdr line-bounds))
@@ -196,10 +197,11 @@ substitutions made.  It is shown with `pop-to-buffer'."
     map)
   "Keymap for Boa IDE Support.")
 
+(declare-function c-update-modeline "cc-cmds")
+
 (define-minor-mode boa-ide-mode
   "Provides support for Boa study template projects."
   :lighter nil
-  :interactive (list 'boa-mode)
   :keymap boa-ide-mode-map
   (when (and boa-ide-mode
              (boa-sc-get-project-dir))

@@ -2,7 +2,6 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.0.0
-;; Package-Requires: (cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -52,7 +51,7 @@ Slots are:
   analyses)
 
 (cl-defstruct boa-sc-query
-  ""
+  "Structure describing a Boa query."
   output-file
   query-file
   dataset
@@ -62,26 +61,26 @@ Slots are:
   processors)
 
 (cl-defstruct boa-sc-processor
-  ""
+  "Structure describing a post-processor."
   script-file
   output-file
   csv-output
   cache-clean)
 
 (cl-defstruct boa-sc-analysis
-  ""
+  "Structure describing an analysis."
   script-file
   input-files
   disabled-p)
 
 (cl-defstruct boa-sc-substitution
-  ""
+  "Structure describing a substitution."
   target
   type
   replacement)
 
 (cl-defstruct boa-sc-csv
-  ""
+  "Structure describing CSV generation."
   output-file
   test
   drop
