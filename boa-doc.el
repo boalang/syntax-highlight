@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 4.0.0
-;; Keywords: docs, languges
+;; Keywords: docs, languages
 ;; URL: https://github.com/boalang/syntax-highlight
 
 
@@ -441,8 +441,7 @@ t, show full documentation."
                                                                                :type "time"
                                                                                :optionalp t)
                                                         (make-boa-doc-argument :name "filters"
-                                                                               :type "string"
-                                                                               ))
+                                                                               :type "string"))
                                        :variadicp t
                                        :documentation "Get a snapshot of files from cr before t, subject to filters.")
            (make-boa-doc-function-data :name "hasfiletype"
@@ -513,7 +512,7 @@ t, show full documentation."
   "Documentation data for Boa in rich-data format.")
 
 ;; Taken from https://www.emacswiki.org/emacs/c-eldoc.el c-eldoc-function-and-argument with slight modification
-(defun boa-get-current-function (&optional limit)
+(defun boa-doc-get-current-function (&optional limit)
   "Get the name of the current function, subject to LIMIT."
   (let* ((literal-limits (c-literal-limits))
          (literal-type (c-literal-type literal-limits))
@@ -634,9 +633,9 @@ t, show full documentation."
 (defun boa-doc-function (callback)
   "Display documentation about current function through CALLBACK.
 
-Current function is determined by `boa-get-current-function', and
+Current function is determined by `boa-doc-get-current-function', and
 formatted with `boa-doc-format-info'."
-  (when-let ((current-function-info (boa-get-current-function))
+  (when-let ((current-function-info (boa-doc-get-current-function))
              (current-function-name (car current-function-info))
              (argument-index (cdr current-function-info))
              (documentation-string (boa-doc-format-info current-function-name argument-index)))

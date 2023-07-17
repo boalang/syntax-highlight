@@ -1,7 +1,8 @@
 ;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
-;; Version: 2.0.0
+;; Version: 2.0.1
+;; Package-Requires: ((emacs "28.1") cl-lib)
 ;; Keywords: boa, msr, language
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -130,11 +131,14 @@ Slots are:
 
 (defun boa-sc-convert-processor (name map)
   "Convert MAP with NAME to a `boa-sc-processor'."
-  (make-boa-sc-processor :script-file name
-                         :output-file (gethash "output" map)
-                         :csv-output (when-let ((csv-object (gethash "csv" map)))
-                                       (boa-sc-convert-csv csv-object))
-                         :cache-clean (gethash "cacheclean" map)))
+  (if (stringp map)
+      (make-boa-sc-processor :script-file name
+                             :output-file map)
+    (make-boa-sc-processor :script-file name
+                           :output-file (gethash "output" map)
+                           :csv-output (when-let ((csv-object (gethash "csv" map)))
+                                         (boa-sc-convert-csv csv-object))
+                           :cache-clean (gethash "cacheclean" map))))
 
 (defun boa-sc-convert-query (name map)
   "Convert the query MAP with NAME to a `boa-sc-query'."
@@ -218,8 +222,10 @@ Slots are:
 
 (defun boa-sc-get-study-config-buffer (project)
   "Get the buffer for PROJECT."
-  (if-let ((configuration (gethash project boa-sc-data)))
-      (boa-sc-configuration-buffer configuration)
+  (if-let ((configuration (gethash project boa-sc-data))
+           (buffer (and (buffer-live-p (boa-sc-configuration-buffer configuration))
+                        (boa-sc-configuration-buffer configuration))))
+      buffer
     (save-mark-and-excursion
       (or (find-buffer-visiting (boa-sc-get-study-config-file project))
           (find-file-noselect (boa-sc-get-study-config-file project))))))
@@ -296,14 +302,8 @@ Slots are:
 
 (defun boa-sc-snippets (project)
   "Get known snippets for PROJECT."
-  (let ((snippets (mapcar #'boa-sc-substitution-target
-                          (boa-sc-configuration-substitutions (boa-sc-get-data project)))))
-    (boa-sc-maphash #'(lambda (_ query)
-                        (mapcan #'(lambda (substitution)
-                                    (cl-pushnew (boa-sc-substitution-target substitution) snippets :test #'string=))
-                                (boa-sc-query-substitutions query)))
-                    (boa-sc-configuration-queries (boa-sc-get-data project)))
-    snippets))
+  (mapcar #'boa-sc-substitution-target
+          (boa-sc-configuration-substitutions (boa-sc-get-data project))))
 
 
 ;; Find items from queries (return list of strings)
