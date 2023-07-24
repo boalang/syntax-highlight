@@ -128,6 +128,7 @@
   "Location of pre-build snippets for `boa-mode'.")
 
 (declare-function yas-load-directory "yasnippet")
+(defvar yas-snippet-dirs)
 
 (defun boa-mode-enable-snippets ()
   "Load snippets for Boa mode."
@@ -191,7 +192,7 @@ In addition to basic `c-mode' mode line configuration, if
 `boa-ide-mode' is enabled, modify the lighter (show \"(IDE)\")."
   (if (derived-mode-p 'boa-mode)
       (let ((fmt (format "/%s%s%s%s%s%s%s"
-		         (if c-block-comment-flag "*" "/")
+                         (if c-block-comment-flag "*" "/")
 		         (if c-electric-flag "l" "")
 		         (if (and c-electric-flag c-auto-newline)
 			     "a" "")
@@ -227,7 +228,7 @@ In addition to basic `c-mode' mode line configuration, if
 (put 'boa-mode 'c-mode-prefix "boa-")
 (c-add-language 'boa-mode 'c-mode)
 
-(easy-menu-define boa-menu boa-mode-map "Boa Mode Commands"
+(easy-menu-define boa-menu boa-mode-map "Boa Mode Commands."
   (cons "Boa" (c-lang-const c-mode-menu boa)))
 
 ;; menu-title regexp index function arguments

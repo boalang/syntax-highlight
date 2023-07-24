@@ -3,7 +3,7 @@
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.0.1
 ;; Package-Requires: ((emacs "28.1") cl-lib)
-;; Keywords: boa, msr, language
+;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 
 ;; Copyright 2022 Samuel W. Flint and University of Nebraska Board of Regents
@@ -250,8 +250,8 @@ Slots are:
   (or (boa-sc-get-project-dir)
       (completing-read prompt
                        (let ((projs (list)))
-                         (maphash #'(lambda (key _)
-                                      (cl-pushnew key projs :test #'string=))
+                         (maphash (lambda (key _)
+                                    (cl-pushnew key projs :test #'string=))
                                   boa-sc-data)
                          projs)
                        nil t)))
@@ -262,41 +262,41 @@ Slots are:
 (defun boa-sc-datasets (project)
   "Get known datasets for PROJECT."
   (let ((datasets (list)))
-    (boa-sc-maphash #'(lambda (key _)
-                        (cl-pushnew key datasets :test #'string=))
+    (boa-sc-maphash (lambda (key _)
+                      (cl-pushnew key datasets :test #'string=))
                     (boa-sc-configuration-datasets (boa-sc-get-data project)))
     datasets))
 
 (defun boa-sc-outputs (project)
   "Get known outputs for PROJECT."
   (let ((outputs (list)))
-    (boa-sc-maphash #'(lambda (output query)
-                        (cl-pushnew output outputs :test #'string=)
-                        (boa-sc-maphash #'(lambda (_ processor)
-                                            (when-let ((output (boa-sc-processor-output-file processor)))
-                                              (cl-pushnew output outputs :test #'string=)))
-                                        (boa-sc-query-processors query)))
+    (boa-sc-maphash (lambda (output query)
+                      (cl-pushnew output outputs :test #'string=)
+                      (boa-sc-maphash (lambda (_ processor)
+                                        (when-let ((output (boa-sc-processor-output-file processor)))
+                                          (cl-pushnew output outputs :test #'string=)))
+                                      (boa-sc-query-processors query)))
                     (boa-sc-configuration-queries (boa-sc-get-data project)))
     outputs))
 
 (defun boa-sc-csvs (project)
   "Get known CSV outputs for PROJECT."
   (let ((csvs (list)))
-    (boa-sc-maphash #'(lambda (_ query)
-                        (when-let ((csv (boa-sc-query-csv-output query)))
-                          (cl-pushnew (boa-sc-csv-output-file csv) csvs :test #'string=))
-                        (boa-sc-maphash #'(lambda (_ processor)
-                                            (when-let ((csv (boa-sc-processor-csv-output processor)))
-                                              (cl-pushnew (boa-sc-csv-output-file csv) csvs :test #'string=)))
-                                        (boa-sc-query-processors query)))
+    (boa-sc-maphash (lambda (_ query)
+                      (when-let ((csv (boa-sc-query-csv-output query)))
+                        (cl-pushnew (boa-sc-csv-output-file csv) csvs :test #'string=))
+                      (boa-sc-maphash (lambda (_ processor)
+                                        (when-let ((csv (boa-sc-processor-csv-output processor)))
+                                          (cl-pushnew (boa-sc-csv-output-file csv) csvs :test #'string=)))
+                                      (boa-sc-query-processors query)))
                     (boa-sc-configuration-queries (boa-sc-get-data project)))
     csvs))
 
 (defun boa-sc-analyses (project)
   "Get known analyses for PROJECT."
   (let ((analyses (list)))
-    (boa-sc-maphash #'(lambda (analysis _)
-                        (cl-pushnew (file-name-sans-extension analysis) analyses :test #'string=))
+    (boa-sc-maphash (lambda (analysis _)
+                      (cl-pushnew (file-name-sans-extension analysis) analyses :test #'string=))
                     (boa-sc-configuration-analyses (boa-sc-get-data project)))
     analyses))
 
@@ -357,8 +357,8 @@ Slots are:
     (let ((snippets (append (reverse (boa-sc-query-substitutions query))
                             (reverse (boa-sc-configuration-substitutions project))))
           (final-snippets (list)))
-      (mapcan #'(lambda (snippet)
-                  (cl-pushnew snippet final-snippets :test #'string= :key #'boa-sc-substitution-target))
+      (mapcan (lambda (snippet)
+                (cl-pushnew snippet final-snippets :test #'string= :key #'boa-sc-substitution-target))
               snippets)
       final-snippets)))
 

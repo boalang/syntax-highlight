@@ -3,7 +3,7 @@
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 3.0.0
 ;; Package-Requires: ((boa-sc-data "2.0.0") (boa-mode "1.4.4") cl-lib (emacs "28.1"))
-;; Keywords: language
+;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 
 
@@ -163,10 +163,7 @@ substitutions made.  It is shown with `pop-to-buffer'."
 
 (defun boa-ide-complete-snippets ()
   "Offer snippet completions."
-  (let* ((symbol-bounds (bounds-of-thing-at-point 'symbol))
-         ;; (symbol-start (car symbol-bounds))
-         ;; (symbol-end (cdr symbol-bounds))
-         (line-bounds (bounds-of-thing-at-point 'line))
+  (let* ((line-bounds (bounds-of-thing-at-point 'line))
          (line-start (car line-bounds))
          (line-end (cdr line-bounds))
          (snippets (cl-remove-duplicates (mapcar (lambda (str)
@@ -186,9 +183,9 @@ substitutions made.  It is shown with `pop-to-buffer'."
 
 (defvar boa-ide-mode-map
   (let ((map (make-sparse-keymap)))
-    (mapc #'(lambda (binding)
-              (cl-destructuring-bind (binding function) binding
-                (define-key map (kbd binding) function)))
+    (mapc (lambda (binding)
+            (cl-destructuring-bind (binding function) binding
+              (define-key map (kbd binding) function)))
           '(("C-c C-r q" boa-ide-run-query)
             ("C-c C-r c" boa-ide-run-csv)
             ("C-c C-r a" boa-ide-run-analysis)

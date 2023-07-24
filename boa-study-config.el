@@ -3,7 +3,7 @@
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.3.3
 ;; Package-Requires: ((emacs "25.1") (boa-sc-data "1.1.0") (json-snatcher "1.0") (json-mode "0.2") (project "0.8.1"))
-;; Keywords: boa, msr, language
+;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 
 
@@ -114,27 +114,27 @@ Applicable contexts (and completions) are:
   (let* ((completions
           (pcase (boa-study-config-current-context)
             (:query-fn
-             (mapcar #'(lambda (x) (substring x 4))
+             (mapcar (lambda (x) (substring x 4))
                      (directory-files-recursively "boa/queries" ".*\\.boa$")))
             (:substitution-fn
-             (mapcar #'(lambda (x) (substring x 13))
+             (mapcar (lambda (x) (substring x 13))
                      (directory-files-recursively "boa/snippets" ".*\\.boa$")))
             (:inputs-list
              (append (boa-sc-outputs boa-study-config-project-dir)
                      (boa-sc-csvs boa-study-config-project-dir)))
             (:processor-fn
-             (mapcar #'(lambda (x) (substring x 4))
+             (mapcar (lambda (x) (substring x 4))
                      (directory-files-recursively "bin/" ".*\\.py$")))
             (:analysis-fn
-             (cl-remove-if (apply-partially 'string-prefix-p "common/")
-                           (mapcar #'(lambda (x) (substring x 9))
+             (cl-remove-if (apply-partially #'string-prefix-p "common/")
+                           (mapcar (lambda (x) (substring x 9))
                                    (directory-files-recursively "analyses/" ".*\\.py$"))))
             (:dataset-name
              (boa-sc-datasets boa-study-config-project-dir))))
          (bounds (bounds-of-thing-at-point 'filename))
          (start (or (car bounds) (point)))
          (end (or (cdr bounds) (point))))
-    (unless (null completions)
+    (when completions
       (list start
             end
             completions))))
@@ -161,8 +161,8 @@ Applicable contexts (and completions) are:
 
 Default for TARGET is determined using `boa-study-config-runnable-at-point'."
   (interactive (completing-read "Study Config Target? "
-                                (append (mapcar #'(lambda (x) (format "data/txt/%s" x)) (boa-sc-outputs boa-study-config-project-dir))
-                                        (mapcar #'(lambda (x) (format "data/csv/%s" x)) (boa-sc-csvs boa-study-config-project-dir))
+                                (append (mapcar (lambda (x) (format "data/txt/%s" x)) (boa-sc-outputs boa-study-config-project-dir))
+                                        (mapcar (lambda (x) (format "data/csv/%s" x)) (boa-sc-csvs boa-study-config-project-dir))
                                         (mapcar #'file-name-sans-extension (boa-sc-analyses boa-study-config-project-dir)))
                                 nil t (boa-study-config-runnable-at-point)))
   (boa-sc-compile boa-study-config-project-dir target))
@@ -200,9 +200,9 @@ Note: Use `find-file-at-point' (\\[find-file-at-point]) instead."
 
 (defvar boa-study-config-mode-map
   (let ((map (make-sparse-keymap)))
-    (mapc #'(lambda (binding)
-              (cl-destructuring-bind (binding function) binding
-                (define-key map (kbd binding) function)))
+    (mapc (lambda (binding)
+            (cl-destructuring-bind (binding function) binding
+              (define-key map (kbd binding) function)))
           '(("C-c C-s v" boa-sc-set-verbose)
             ("C-c C-s f" boa-study-config-ffap)
             ("C-c C-c" boa-study-config-run)))

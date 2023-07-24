@@ -28,6 +28,7 @@
 (require 'cc-langs)
 (require 'cc-mode)
 (require 'cl-lib)
+(require 'subr-x)
 (require 'boa-mode)
 
 ;;; Code:
