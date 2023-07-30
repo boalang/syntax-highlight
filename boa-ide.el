@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 3.0.0
-;; Package-Requires: ((boa-sc-data "2.0.0") (boa-mode "1.4.4") cl-lib (emacs "28.1"))
+;; Package-Requires: ((boa-mode "1.4.4") (emacs "28.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 

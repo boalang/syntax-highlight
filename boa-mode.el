@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.2.0
-;; Package-Requires: ((emacs "26.1") (cc-mode "5.33.1"))
+;; Package-Requires: ((emacs "26.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -193,7 +193,7 @@ In addition to basic `c-mode' mode line configuration, if
   (if (derived-mode-p 'boa-mode)
       (let ((fmt (format "/%s%s%s%s%s%s%s"
                          (if c-block-comment-flag "*" "/")
-		         (if c-electric-flag "l" "")
+                         (if c-electric-flag "l" "")
 		         (if (and c-electric-flag c-auto-newline)
 			     "a" "")
 		         (if c-hungry-delete-key "h" "")
@@ -218,7 +218,6 @@ In addition to basic `c-mode' mode line configuration, if
 	        bare-mode-name))
         (force-mode-line-update))
     (funcall original)))
-(advice-add 'c-update-modeline :around #'boa-update-modeline)
 
 (defvar boa-mode-map
   (let ((map (c-make-inherited-keymap)))
@@ -284,6 +283,8 @@ Key bindings:
     (c-set-offset 'case-label 0)
     (c-set-offset 'access-label 0)
     (cc-imenu-init boa-generic-expression-imenu)
+    (unless (advice-member-p #'boa-update-modeline 'c-update-modeline)
+      (advice-add 'c-update-modeline :around #'boa-update-modeline))
     (c-run-mode-hooks 'c-mode-common-hook)
     (setq-local completion-at-point-functions (cons 'boa-autocomplete-symbol completion-at-point-functions))))
 

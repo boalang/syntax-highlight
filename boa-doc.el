@@ -4,6 +4,7 @@
 ;; Version: 4.0.0
 ;; Keywords: docs, languages
 ;; URL: https://github.com/boalang/syntax-highlight
+;; Package-Requires: ((emacs "26.1"))
 
 
 ;; Copyright 2022 Samuel W. Flint and University of Nebraska Board of Regents
