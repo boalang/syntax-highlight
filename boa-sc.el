@@ -1,4 +1,4 @@
-;;; boa-sc-data.el --- Data management for study-config data  -*- lexical-binding: t; -*-
+;;; boa-sc.el --- Data management for study-config data  -*- lexical-binding: t; -*-
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.0.1
@@ -406,6 +406,6 @@ If called interactively, print as a message."
         (default-directory project))
     (compilation-start (format "make%s %s" (boa-sc-get-verbosity project) target) nil)))
 
-(provide 'boa-sc-data)
+(provide 'boa-sc)
 
-;;; boa-sc-data.el ends here.
+;;; boa-sc.el ends here.

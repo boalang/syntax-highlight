@@ -27,7 +27,7 @@
 ;; This package provides further support for the Boa Study Template
 ;; (https://github.com/boalang/study-template).
 
-(require 'boa-sc-data)
+(require 'boa-sc)
 (require 'cl-lib)
 (require 'json-snatcher)
 (require 'json-mode)
