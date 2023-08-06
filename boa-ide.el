@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 3.0.0
-;; Package-Requires: ((boa-mode "1.4.4") (emacs "28.1"))
+;; Package-Requires: ((boa-mode "1.4.4") (emacs "28.1")  (json-snatcher "1.0"))
 ;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 
@@ -27,7 +27,7 @@
 ;; This package provides support for the Boa Study Template
 ;; (https://github.com/boalang/study-template).
 
-(require 'boa-sc)
+(require 'boa-ide-sc)
 (require 'boa-mode)
 (require 'cl-lib)
 
@@ -49,29 +49,29 @@
   (interactive (list
                 (format "data/txt/%s"
                         (completing-read "Query: "
-                                         (boa-sc-outputs-query boa-ide-project-dir
-                                                               boa-ide-file-relative-name)
+                                         (boa-ide-sc-outputs-query boa-ide-project-dir
+                                                                   boa-ide-file-relative-name)
                                          nil t))))
-  (boa-sc-compile boa-ide-project-dir query))
+  (boa-ide-sc-compile boa-ide-project-dir query))
 
 (defun boa-ide-run-csv (csv)
   "Generate csv file CSV."
   (interactive (list
                 (format "data/csv/%s"
                         (completing-read "CSV: "
-                                         (boa-sc-csv-query boa-ide-project-dir
-                                                           boa-ide-file-relative-name)
+                                         (boa-ide-sc-csv-query boa-ide-project-dir
+                                                               boa-ide-file-relative-name)
                                          nil t))))
-  (boa-sc-compile boa-ide-project-dir csv))
+  (boa-ide-sc-compile boa-ide-project-dir csv))
 
 (defun boa-ide-run-analysis (analysis)
   "Run the analysis ANALYSIS."
   (interactive (list
                 (completing-read "Analysis: "
-                                 (boa-sc-analyses-query boa-ide-project-dir
-                                                        boa-ide-file-relative-name)
+                                 (boa-ide-sc-analyses-query boa-ide-project-dir
+                                                            boa-ide-file-relative-name)
                                  nil t)))
-  (boa-sc-compile boa-ide-project-dir analysis))
+  (boa-ide-sc-compile boa-ide-project-dir analysis))
 
 (defun boa-ide-run-any (target)
   "Run TARGET."
@@ -79,20 +79,20 @@
                 (completing-read "Target: "
                                  (append
                                   (mapcar (apply-partially #'format "data/txt/%s")
-                                          (boa-sc-outputs-query boa-ide-project-dir
-                                                                boa-ide-file-relative-name))
+                                          (boa-ide-sc-outputs-query boa-ide-project-dir
+                                                                    boa-ide-file-relative-name))
                                   (mapcar (apply-partially #'format "data/csv/%s")
-                                          (boa-sc-csv-query boa-ide-project-dir
-                                                            boa-ide-file-relative-name))
-                                  (boa-sc-analyses-query boa-ide-project-dir
-                                                         boa-ide-file-relative-name))
+                                          (boa-ide-sc-csv-query boa-ide-project-dir
+                                                                boa-ide-file-relative-name))
+                                  (boa-ide-sc-analyses-query boa-ide-project-dir
+                                                             boa-ide-file-relative-name))
                                  nil t)))
-  (boa-sc-compile boa-ide-project-dir target))
+  (boa-ide-sc-compile boa-ide-project-dir target))
 
 (defun boa-ide-pop-to-study-config ()
   "Pop to buffer's study-config."
   (interactive)
-  (pop-to-buffer (boa-sc-get-study-config-buffer boa-ide-project-dir)))
+  (pop-to-buffer (boa-ide-sc-get-study-config-buffer boa-ide-project-dir)))
 
 
 ;;; Preview queries.
@@ -111,9 +111,9 @@ ROOT, and used."
                     prefix))))
     (save-match-data
       (with-temp-buffer
-        (if (equal :string (boa-sc-substitution-type replacement))
-            (insert (boa-sc-substitution-replacement replacement))
-          (insert-file-contents (expand-file-name (boa-sc-substitution-replacement replacement) (expand-file-name "boa/snippets" root))))
+        (if (equal :string (boa-ide-sc-substitution-type replacement))
+            (insert (boa-ide-sc-substitution-replacement replacement))
+          (insert-file-contents (expand-file-name (boa-ide-sc-substitution-replacement replacement) (expand-file-name "boa/snippets" root))))
         (goto-char (point-min))
         (when prefix
           (while (progn (forward-line) (not (looking-at "^$")))
@@ -129,13 +129,13 @@ study template.  A new buffer will be created with a filename of
 the form \"*Boa Query Preview for QUERY*\", filled and
 substitutions made.  It is shown with `pop-to-buffer'."
   (interactive (list (completing-read "Query: "
-                                      (boa-sc-outputs-query boa-ide-project-dir
-                                                            boa-ide-file-relative-name)
+                                      (boa-ide-sc-outputs-query boa-ide-project-dir
+                                                                boa-ide-file-relative-name)
                                       nil t)))
   (let ((orig-buffer (current-buffer))
         (buffer (generate-new-buffer (format "*Boa Query Preview for %s*" query)))
         (changedp t)
-        (substitutions-list (boa-sc-snippets-query boa-ide-project-dir query))
+        (substitutions-list (boa-ide-sc-snippets-query boa-ide-project-dir query))
         (root-dir boa-ide-project-dir))
     (with-current-buffer buffer
       (insert-buffer-substring-no-properties orig-buffer)
@@ -146,10 +146,10 @@ substitutions made.  It is shown with `pop-to-buffer'."
           (save-match-data
             (goto-char (point-min))
             (when (re-search-forward (rx (seq (group-n 1 (* any))
-                                              (group-n 2 (literal (boa-sc-substitution-target substitution)))))
+                                              (group-n 2 (literal (boa-ide-sc-substitution-target substitution)))))
                                      nil t)
               (setf changedp t)
-              (message "Replacing target \"%s\"." (boa-sc-substitution-target substitution))
+              (message "Replacing target \"%s\"." (boa-ide-sc-substitution-target substitution))
               (let ((replacement-string(boa-ide-prepare-replacement (match-string 1) root-dir substitution)))
                 (replace-match replacement-string nil t nil 2)
                 (message "Replacement made."))))))
@@ -168,7 +168,7 @@ substitutions made.  It is shown with `pop-to-buffer'."
          (line-end (cdr line-bounds))
          (snippets (cl-remove-duplicates (mapcar (lambda (str)
                                                    (substring str 2 (- (length str) 2)))
-                                                 (boa-sc-snippets boa-ide-project-dir))
+                                                 (boa-ide-sc-snippets boa-ide-project-dir))
                                          :test #'string=)))
     (when-let ((new-start (save-excursion
                             (save-match-data
@@ -202,8 +202,8 @@ substitutions made.  It is shown with `pop-to-buffer'."
   :lighter nil
   :keymap boa-ide-mode-map
   (when (and boa-ide-mode
-             (boa-sc-get-project-dir))
-    (setq-local boa-ide-project-dir (boa-sc-get-project-dir))
+             (boa-ide-sc-get-project-dir))
+    (setq-local boa-ide-project-dir (boa-ide-sc-get-project-dir))
     (setq-local boa-ide-file-relative-name
                 (file-relative-name (buffer-file-name)
                                     (expand-file-name "boa" boa-ide-project-dir)))
