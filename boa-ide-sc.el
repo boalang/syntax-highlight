@@ -2,7 +2,6 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 2.0.1
-;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 

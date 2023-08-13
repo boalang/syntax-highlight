@@ -2,7 +2,7 @@
 
 ;; Author: Samuel W. Flint <swflint@flintfam.org>
 ;; Version: 3.0.0
-;; Package-Requires: ((boa-mode "1.4.4") (emacs "28.1")  (json-snatcher "1.0"))
+;; Package-Requires: ((boa-mode "1.4.4") (emacs "28.1")  (json-snatcher "1.0") (json-mode "0.2") (project "0.8.1"))
 ;; Keywords: languages
 ;; URL: https://github.com/boalang/syntax-highlight
 
