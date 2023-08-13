@@ -402,8 +402,7 @@ If called interactively, print as a message."
 
 (defun boa-ide-sc-compile (project target)
   "Compile TARGET in PROJECT."
-  (let ((compilation-directory project)
-        (default-directory project))
+  (let ((default-directory project))
     (compilation-start (format "make%s %s" (boa-ide-sc-get-verbosity project) target) nil)))
 
 (provide 'boa-ide-sc)
