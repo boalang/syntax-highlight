@@ -156,7 +156,7 @@ Slots are:
                                        processors)))
 
 (defun boa-ide-sc-convert-configuration (project buffer map)
-  "Build a `boa-ide-sc-configuration' from MAP for PROJECT with configuration BUFFER."
+  "Build a `boa-ide-sc-configuration' from MAP for PROJECT in BUFFER."
   (make-boa-ide-sc-configuration :project project
                                  :buffer buffer
                                  :datasets (gethash "datasets" map)
